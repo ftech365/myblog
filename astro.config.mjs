@@ -8,8 +8,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://YOUR_USERNAME.github.io',
-  // base: '/YOUR_REPO_NAME',  // GitHubリポジトリ名がサブパスになる場合はコメントを外す
+  site: 'https://ftech365.github.io',
+  base: '/myblog',  // GitHubリポジトリ名がサブパスになる場合はコメントを外す
   integrations: [
     expressiveCode({
       themes: ['dracula'],
