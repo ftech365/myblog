@@ -6,7 +6,8 @@ interface Props {
   image?: string;
 }
 const SITE_TITLE = 'FTechNotes';
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const rawPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const canonicalURL = new URL(rawPath, Astro.site);
 const { title, description, image = '/og-default.png' } = Astro.props;
 const pageTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');

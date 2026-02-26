@@ -1,18 +1,17 @@
 ---
 const year = new Date().getFullYear();
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-
 <footer>
   <div class="footer-inner">
     <div class="footer-logo">FTechNotes</div>
     <div class="footer-text">© {year} — All rights reserved</div>
     <div class="footer-links">
-      <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href="/rss.xml">RSS</a>
+      <a href="https://github.com/ftech365" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href={`${base}/rss.xml`}>RSS</a>
     </div>
   </div>
 </footer>
-
 <style>
   footer {
     border-top: 1px solid var(--border);
@@ -49,7 +48,6 @@ const year = new Date().getFullYear();
     transition: color 0.2s;
   }
   .footer-links a:hover { color: var(--accent); }
-
   @media (max-width: 768px) {
     .footer-inner { flex-direction: column; gap: 16px; padding: 24px 20px; text-align: center; }
   }
