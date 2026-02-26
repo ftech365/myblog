@@ -1,0 +1,112 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+import TagBadge from '../../components/TagBadge.astro';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+
+  const tags = [...new Set(allPosts.flatMap(p => p.data.tags))];
+
+  return tags.map(tag => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: allPosts
+        .filter(p => p.data.tags.includes(tag))
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<Base title={`#${tag}`} description={`${tag} タグの記事一覧`}>
+  <div class="tag-page">
+    <div class="tag-page-header">
+      <p class="tag-label">// TAG</p>
+      <h1><span>#</span>{tag}</h1>
+      <p class="tag-count">{posts.length}件の記事</p>
+    </div>
+
+    <div class="back-link">
+      <a href="/tags">← すべてのタグ</a>
+    </div>
+
+    <div class="posts-grid">
+      {posts.map((post, i) => (
+        <PostCard
+          title={post.data.title}
+          description={post.data.description}
+          pubDate={post.data.pubDate}
+          slug={post.id}
+          tags={post.data.tags}
+          num={i + 1}
+        />
+      ))}
+    </div>
+  </div>
+</Base>
+
+<style>
+  .tag-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 40px;
+  }
+
+  .tag-page-header { margin-bottom: 48px; }
+
+  .tag-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 8vw, 72px);
+    letter-spacing: 3px;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  h1 span { color: var(--accent); text-shadow: 0 0 30px rgba(0,229,255,0.4); }
+
+  .tag-count {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .back-link {
+    margin-bottom: 40px;
+  }
+  .back-link a {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .back-link a:hover { color: var(--accent); }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  @media (max-width: 1024px) {
+    .posts-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .tag-page { padding: 40px 20px; }
+    .posts-grid { grid-template-columns: 1fr; }
+  }
+</style>

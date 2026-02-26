@@ -1,0 +1,78 @@
+backend:
+  name: github
+  repo: YOUR_GITHUB_USERNAME/YOUR_REPO_NAME  # 実際のリポジトリ名に変更すること
+  branch: main
+
+# メディアファイルの保存先
+media_folder: public/images
+public_folder: /images
+
+# 記事コレクション
+collections:
+  - name: posts
+    label: 記事
+    folder: src/content/posts
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - label: タイトル
+        name: title
+        widget: string
+        hint: "記事タイトル（最大100文字）"
+
+      - label: 説明
+        name: description
+        widget: text
+        hint: "記事の概要（OGPにも使用・最大300文字）"
+
+      - label: 投稿日
+        name: pubDate
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+
+      - label: 更新日
+        name: updatedDate
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        required: false
+
+      - label: カテゴリ
+        name: category
+        widget: select
+        options:
+          - AWS
+          - Linux
+          - Terraform
+          - Kubernetes
+          - ネットワーク
+          - セキュリティ
+          - 資格
+          - 監視・運用
+          - その他
+        required: false
+
+      - label: タグ
+        name: tags
+        widget: list
+        default: []
+        hint: "カンマ区切りでタグを入力（最大10個）"
+
+      - label: フィーチャード記事
+        name: featured
+        widget: boolean
+        default: false
+        hint: "TOPページのFEATUREDに表示する"
+
+      - label: 下書き
+        name: draft
+        widget: boolean
+        default: false
+        hint: "trueにすると公開されない"
+
+      - label: 本文
+        name: body
+        widget: markdown

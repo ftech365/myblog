@@ -1,0 +1,126 @@
+---
+const navLinks = [
+  { href: '/', label: '記事' },
+  { href: '/tags', label: 'タグ' },
+  { href: '/about', label: 'About' },
+];
+
+const currentPath = Astro.url.pathname;
+
+function isActive(href: string) {
+  if (href === '/') return currentPath === '/';
+  return currentPath.startsWith(href);
+}
+---
+
+<header>
+  <!-- Logo -->
+  <a href="/" class="logo">
+    <div class="logo-dot"></div>
+    FTech<span>Notes</span>
+  </a>
+
+  <!-- Nav -->
+  <nav>
+    {navLinks.map(link => (
+      <a
+        href={link.href}
+        class:list={['nav-link', { active: isActive(link.href) }]}
+      >
+        {link.label}
+      </a>
+    ))}
+  </nav>
+
+  <!-- Search -->
+  <a href="/search" class="search-btn">
+    <span>⌕</span> 検索
+  </a>
+</header>
+
+<style>
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(8,12,20,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo span { color: var(--accent); text-shadow: 0 0 20px var(--accent); }
+  .logo-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  nav { display: flex; align-items: center; gap: 32px; }
+
+  .nav-link {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0;
+    width: 0; height: 1px;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .nav-link:hover { color: var(--accent); }
+  .nav-link:hover::after { width: 100%; }
+  .nav-link.active { color: var(--accent); }
+  .nav-link.active::after { width: 100%; }
+
+  .search-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  .search-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.05);
+  }
+
+  @media (max-width: 768px) {
+    header { padding: 0 20px; }
+    nav { gap: 16px; }
+    .search-btn { display: none; }
+  }
+</style>

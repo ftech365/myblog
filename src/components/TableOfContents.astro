@@ -1,0 +1,86 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const h2s = headings.filter(h => h.depth === 2 || h.depth === 3);
+---
+
+{h2s.length > 0 && (
+  <div class="toc-block">
+    <div class="sidebar-title">目次</div>
+    <ul class="toc-list" id="toc-list">
+      {h2s.map(h => (
+        <li class:list={['toc-item', { 'toc-sub': h.depth === 3 }]}>
+          <a href={`#${h.slug}`} class="toc-link">{h.text}</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+<script>
+  // アクティブ見出しのハイライト
+  const tocLinks = document.querySelectorAll<HTMLAnchorElement>('.toc-link');
+  const headingEls = Array.from(tocLinks).map(link => {
+    const id = link.getAttribute('href')?.slice(1);
+    return id ? document.getElementById(id) : null;
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        tocLinks.forEach(l => l.classList.remove('active'));
+        const idx = headingEls.indexOf(entry.target as HTMLElement);
+        if (idx !== -1) tocLinks[idx]?.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-80px 0px -60% 0px' });
+
+  headingEls.forEach(el => { if (el) observer.observe(el); });
+</script>
+
+<style>
+  .sidebar-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .toc-list { list-style: none; }
+
+  .toc-item {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .toc-item.toc-sub { padding-left: 12px; }
+
+  .toc-link {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-decoration: none;
+    display: flex;
+    gap: 8px;
+    transition: color 0.2s;
+    line-height: 1.5;
+  }
+  .toc-link::before {
+    content: '—';
+    color: var(--border);
+    font-family: var(--font-mono);
+    flex-shrink: 0;
+  }
+  .toc-link:hover { color: var(--accent); }
+  .toc-link.active { color: var(--accent); }
+  .toc-link.active::before { color: var(--accent); }
+</style>

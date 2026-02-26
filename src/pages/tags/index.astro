@@ -1,0 +1,189 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import TagBadge from '../../components/TagBadge.astro';
+
+const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+const posts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// すべてのタグを集計
+const tagCounts = new Map<string, number>();
+posts.forEach(post => {
+  post.data.tags.forEach(tag => {
+    tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+  });
+});
+const tags = Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]);
+---
+
+<Base title="タグ一覧" description="タグ・カテゴリ別に記事を探す">
+  <div class="tag-page">
+    <!-- Header -->
+    <div class="tag-page-header">
+      <h1>TAGS &amp; <span>TOPICS</span></h1>
+      <p>// カテゴリ別に記事を探す</p>
+    </div>
+
+    <!-- Tag pills -->
+    <div class="all-tags">
+      {tags.map(([tag, count]) => (
+        <a href={`/tags/${tag}`} class="tag-pill">
+          {tag}
+          <span class="tag-count">{count}</span>
+        </a>
+      ))}
+    </div>
+
+    <!-- All posts list -->
+    <div class="section-label">ALL POSTS</div>
+    <div class="tag-posts">
+      {posts.map(post => (
+        <a href={`/posts/${post.id}`} class="tag-post-item">
+          <span class="tag-post-date">
+            {post.data.pubDate.toLocaleDateString('ja-JP', {
+              year: 'numeric', month: '2-digit', day: '2-digit'
+            }).replace(/\//g, '.')}
+          </span>
+          <span class="tag-post-title">{post.data.title}</span>
+          <div class="tag-post-tags">
+            {post.data.tags.slice(0, 2).map(tag => <TagBadge tag={tag} />)}
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</Base>
+
+<style>
+  .tag-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 40px;
+  }
+
+  .tag-page-header { margin-bottom: 56px; }
+  .tag-page-header h1 {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 8vw, 72px);
+    letter-spacing: 3px;
+    line-height: 0.9;
+    margin-bottom: 12px;
+  }
+  .tag-page-header h1 span {
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(0,229,255,0.4);
+  }
+  .tag-page-header p {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-family: var(--font-mono);
+  }
+
+  .all-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 48px;
+  }
+
+  .tag-pill {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 18px;
+    border-radius: 100px;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tag-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.05);
+  }
+  .tag-count {
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .tag-posts { display: flex; flex-direction: column; }
+
+  .tag-post-item {
+    display: grid;
+    grid-template-columns: 160px 1fr auto;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+    position: relative;
+    padding-left: 0;
+  }
+  .tag-post-item::before {
+    content: '';
+    position: absolute;
+    left: -20px; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 0.3s;
+    border-radius: 0 2px 2px 0;
+  }
+  .tag-post-item:hover { padding-left: 12px; }
+  .tag-post-item:hover::before { transform: scaleY(1); }
+
+  .tag-post-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .tag-post-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    transition: color 0.2s;
+    line-height: 1.5;
+  }
+  .tag-post-item:hover .tag-post-title { color: var(--accent); }
+
+  .tag-post-tags {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    .tag-page { padding: 40px 20px; }
+    .tag-post-item { grid-template-columns: 1fr; gap: 8px; }
+    .tag-post-tags { justify-content: flex-start; }
+  }
+</style>

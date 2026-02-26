@@ -1,0 +1,26 @@
+{
+  "name": "my-infra-blog",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.13",
+    "@astrojs/rss": "^4.0.15",
+    "@astrojs/sitemap": "^3.7.0",
+    "@tailwindcss/vite": "^4.2.1",
+    "astro": "^5.17.1",
+    "astro-expressive-code": "^0.41.7",
+    "pagefind": "^1.4.0",
+    "pdfkit": "^0.17.2",
+    "sharp": "^0.34.3",
+    "tailwindcss": "^4.2.1"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.37.5"
+  }
+}

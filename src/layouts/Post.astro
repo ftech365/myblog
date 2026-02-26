@@ -1,0 +1,210 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import TagBadge from '../components/TagBadge.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+  headings: { depth: number; slug: string; text: string }[];
+}
+
+const { post, headings } = Astro.props;
+const { title, description, pubDate, updatedDate, tags = [], category } = post.data;
+
+const formattedDate = pubDate.toLocaleDateString('ja-JP', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+const formattedUpdated = updatedDate?.toLocaleDateString('ja-JP', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <BaseHead title={title} description={description} />
+  </head>
+  <body>
+    <div class="grid-bg"></div>
+    <Header />
+
+    <div class="article-layout">
+      <!-- Main content -->
+      <main>
+        <header class="article-header">
+          <div class="post-meta">
+            {category && <TagBadge tag={category} />}
+            {tags.slice(0, 3).map(tag => tag !== category && <TagBadge tag={tag} />)}
+            <span class="post-date">{formattedDate}</span>
+          </div>
+          <h1>{title}</h1>
+          <p class="description">{description}</p>
+          {formattedUpdated && (
+            <p class="updated">最終更新: {formattedUpdated}</p>
+          )}
+        </header>
+
+        <div class="article-divider"></div>
+
+        <article class="prose">
+          <slot />
+        </article>
+
+        <!-- Tags footer -->
+        <div class="article-footer">
+          <div class="article-tags">
+            {tags.map(tag => <TagBadge tag={tag} href={`/tags/${tag}`} />)}
+          </div>
+        </div>
+      </main>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-sticky">
+          <div class="sidebar-block">
+            <TableOfContents headings={headings} />
+          </div>
+
+          {tags.length > 0 && (
+            <div class="sidebar-block">
+              <div class="sidebar-title">タグ</div>
+              <div class="tag-list">
+                {tags.map(tag => <TagBadge tag={tag} href={`/tags/${tag}`} />)}
+              </div>
+            </div>
+          )}
+        </div>
+      </aside>
+    </div>
+
+    <Footer />
+  </body>
+</html>
+
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .article-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 60px;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+  }
+
+  .article-header { margin-bottom: 48px; }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .post-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  h1 {
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  .description {
+    font-size: 16px;
+    color: var(--text-dim);
+    line-height: 1.9;
+    margin: 0;
+  }
+
+  .updated {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 12px;
+  }
+
+  .article-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 40px 0;
+    position: relative;
+  }
+  .article-divider::before {
+    content: '';
+    position: absolute;
+    left: 0; top: -1px;
+    width: 80px; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+
+  .article-footer {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Sidebar */
+  .sidebar { position: relative; }
+  .sidebar-sticky {
+    position: sticky;
+    top: 84px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .sidebar-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+  }
+
+  .sidebar-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (max-width: 900px) {
+    .article-layout {
+      grid-template-columns: 1fr;
+      padding: 40px 20px;
+      gap: 40px;
+    }
+    .sidebar { display: none; }
+  }
+</style>

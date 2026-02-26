@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ja" data-page="top">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEVLOG — 技術ブログ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --bg2: #0d1220;
+    --bg3: #111827;
+    --surface: #151d2e;
+    --surface2: #1a2340;
+    --border: #1e2d47;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --accent3: #f59e0b;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --font-mono: 'Space Mono', monospace;
+    --font-body: 'Noto Sans JP', sans-serif;
+    --font-display: 'Bebas Neue', cursive;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed; pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, opacity 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(0,229,255,0.4);
+    border-radius: 50%;
+    position: fixed; pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease-out, width 0.3s, height 0.3s, opacity 0.3s;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1000; opacity: 0.4;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+  /* ===================== HEADER ===================== */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8,12,20,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--text);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo span {
+    color: var(--accent);
+    text-shadow: 0 0 20px var(--accent);
+  }
+  .logo-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+
+  nav { display: flex; align-items: center; gap: 32px; }
+  nav a {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    position: relative;
+  }
+  nav a::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  nav a:hover { color: var(--accent); }
+  nav a:hover::after { width: 100%; }
+  nav a.active { color: var(--accent); }
+  nav a.active::after { width: 100%; }
+
+  .search-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--font-mono); font-size: 11px;
+    padding: 6px 14px; border-radius: 4px;
+    cursor: none; letter-spacing: 1px;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .search-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,0.05); }
+  .search-icon { font-size: 13px; }
+
+  /* ===================== PAGE WRAPPER ===================== */
+  .page { display: none; animation: fadeIn 0.4s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ===================== TOP PAGE ===================== */
+  .hero {
+    padding: 80px 40px 60px;
+    max-width: 1100px; margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: 'DEVLOG';
+    position: absolute; right: -20px; top: 20px;
+    font-family: var(--font-display);
+    font-size: 180px; letter-spacing: -4px;
+    color: rgba(255,255,255,0.02);
+    pointer-events: none; user-select: none;
+    line-height: 1;
+  }
+
+  .hero-tag {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--accent); letter-spacing: 3px;
+    text-transform: uppercase; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-tag::before { content: '//'; opacity: 0.5; }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 7vw, 96px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--accent);
+    text-shadow: none;
+  }
+
+  .hero p {
+    color: var(--text-dim);
+    font-size: 15px; max-width: 460px;
+    line-height: 1.8;
+  }
+
+  /* Featured post */
+  .featured-section {
+    max-width: 1100px; margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .section-label {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--border);
+  }
+
+  .featured-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: grid; grid-template-columns: 1fr 340px;
+    cursor: none;
+    transition: border-color 0.3s, transform 0.3s;
+    position: relative;
+  }
+  .featured-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .featured-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(0,229,255,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .featured-content { padding: 44px; }
+  .post-meta {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px;
+  }
+  .tag {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 3px;
+    cursor: none; transition: all 0.2s;
+  }
+  .tag-cyan { background: rgba(0,229,255,0.1); color: var(--accent); border: 1px solid rgba(0,229,255,0.2); }
+  .tag-violet { background: rgba(124,58,237,0.1); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
+  .tag-amber { background: rgba(245,158,11,0.1); color: var(--accent3); border: 1px solid rgba(245,158,11,0.2); }
+  .tag-green { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+  .tag:hover { transform: translateY(-1px); }
+
+  .post-date { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+
+  .featured-content h2 {
+    font-size: 26px; font-weight: 700;
+    line-height: 1.35; margin-bottom: 16px;
+    color: var(--text);
+  }
+  .featured-content p { color: var(--text-dim); font-size: 14px; line-height: 1.8; margin-bottom: 28px; }
+
+  .read-more {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--accent); letter-spacing: 2px;
+    text-transform: uppercase; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: gap 0.2s;
+    cursor: none;
+  }
+  .read-more:hover { gap: 14px; }
+  .read-more::after { content: '→'; }
+
+  .featured-visual {
+    background: var(--bg3);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .featured-visual-inner {
+    font-family: var(--font-display);
+    font-size: 72px; letter-spacing: 2px;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(0,229,255,0.3);
+    transform: rotate(-15deg);
+    user-select: none;
+    line-height: 1;
+    text-align: center;
+  }
+  .featured-visual::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(0,229,255,0.08), transparent 70%);
+  }
+
+  /* Post grid */
+  .posts-section {
+    max-width: 1100px; margin: 0 auto 80px;
+    padding: 0 40px;
+  }
+
+  .posts-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 28px;
+    cursor: none; transition: all 0.3s;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .post-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .post-card:hover { border-color: rgba(0,229,255,0.3); transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+  .post-card:hover::before { transform: scaleX(1); }
+
+  .post-card h3 { font-size: 16px; font-weight: 700; line-height: 1.45; margin: 14px 0 10px; color: var(--text); flex: 1; }
+  .post-card p { font-size: 13px; color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; }
+  .post-card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: auto;
+  }
+  .post-num {
+    font-family: var(--font-mono); font-size: 32px; font-weight: 700;
+    color: rgba(255,255,255,0.04); position: absolute;
+    bottom: 12px; right: 20px; user-select: none;
+    letter-spacing: -2px;
+  }
+
+  /* ===================== ARTICLE DETAIL ===================== */
+  .article-layout {
+    max-width: 1100px; margin: 0 auto;
+    padding: 60px 40px;
+    display: grid; grid-template-columns: 1fr 280px;
+    gap: 60px;
+  }
+
+  .article-header { margin-bottom: 48px; }
+  .article-header .post-meta { margin-bottom: 24px; }
+  .article-header h1 {
+    font-size: 36px; font-weight: 700;
+    line-height: 1.3; margin-bottom: 20px;
+    color: var(--text);
+  }
+  .article-header p { font-size: 16px; color: var(--text-dim); line-height: 1.9; }
+
+  .article-divider {
+    height: 1px; background: var(--border);
+    margin: 40px 0; position: relative;
+  }
+  .article-divider::before {
+    content: ''; position: absolute;
+    left: 0; top: -1px; width: 80px; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+
+  .article-body h2 {
+    font-size: 22px; font-weight: 700;
+    margin: 40px 0 16px; color: var(--text);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .article-body h2::before {
+    content: '#'; color: var(--accent);
+    font-family: var(--font-mono); font-size: 18px;
+  }
+
+  .article-body p { font-size: 15px; color: var(--text-dim); line-height: 1.9; margin-bottom: 20px; }
+
+  .code-block {
+    background: #0a0f1a;
+    border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+    margin: 28px 0;
+  }
+  .code-header {
+    background: var(--surface);
+    padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-lang {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--accent); letter-spacing: 1px;
+  }
+  .code-dots { display: flex; gap: 6px; }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-dot:nth-child(1) { background: #ff5f56; }
+  .code-dot:nth-child(2) { background: #ffbd2e; }
+  .code-dot:nth-child(3) { background: #27c93f; }
+  .code-body { padding: 20px; overflow-x: auto; }
+  .code-body pre {
+    font-family: var(--font-mono); font-size: 13px;
+    line-height: 1.7; color: #c9d1d9;
+  }
+  .kw { color: #ff79c6; }
+  .str { color: #f1fa8c; }
+  .fn { color: #50fa7b; }
+  .cm { color: #6272a4; font-style: italic; }
+  .num { color: var(--accent); }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(0,229,255,0.05);
+    padding: 16px 20px; border-radius: 0 8px 8px 0;
+    margin: 24px 0;
+    font-size: 14px; color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  /* Sidebar */
+  .sidebar { position: relative; }
+  .sidebar-sticky { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 24px; }
+  .sidebar-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 24px;
+  }
+  .sidebar-title {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 16px;
+  }
+  .toc-list { list-style: none; }
+  .toc-item {
+    font-size: 13px; color: var(--text-dim);
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: none; transition: color 0.2s;
+    display: flex; gap: 8px;
+  }
+  .toc-item:hover { color: var(--accent); }
+  .toc-item::before { content: '—'; color: var(--border); font-family: var(--font-mono); }
+  .toc-item.active { color: var(--accent); }
+  .toc-item.active::before { color: var(--accent); }
+
+  .related-post {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .related-item {
+    font-size: 13px; color: var(--text-dim);
+    cursor: none; padding: 10px;
+    border-radius: 6px; transition: all 0.2s;
+    border: 1px solid transparent;
+    line-height: 1.5;
+  }
+  .related-item:hover { color: var(--text); background: var(--surface2); border-color: var(--border); }
+
+  /* ===================== TAG/CATEGORY PAGE ===================== */
+  .tag-page {
+    max-width: 1100px; margin: 0 auto;
+    padding: 60px 40px;
+  }
+
+  .tag-page-header { margin-bottom: 56px; }
+  .tag-page-header h1 {
+    font-family: var(--font-display);
+    font-size: 72px; letter-spacing: 3px;
+    line-height: 0.9; margin-bottom: 12px;
+  }
+  .tag-page-header h1 span { color: var(--accent); text-shadow: 0 0 30px rgba(0,229,255,0.4); }
+  .tag-page-header p { color: var(--text-muted); font-size: 14px; font-family: var(--font-mono); }
+
+  .all-tags {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-bottom: 48px;
+  }
+  .tag-pill {
+    font-family: var(--font-mono); font-size: 12px;
+    padding: 8px 18px; border-radius: 100px;
+    cursor: none; transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .tag-pill-outline {
+    background: transparent;
+    border: 1px solid var(--border); color: var(--text-muted);
+  }
+  .tag-pill-outline:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,0.05); }
+  .tag-pill-active {
+    background: rgba(0,229,255,0.1);
+    border: 1px solid var(--accent); color: var(--accent);
+  }
+
+  .tag-posts { display: flex; flex-direction: column; gap: 2px; }
+  .tag-post-item {
+    display: grid; grid-template-columns: 160px 1fr auto;
+    align-items: center; gap: 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: none; transition: all 0.2s;
+    position: relative;
+  }
+  .tag-post-item::before {
+    content: '';
+    position: absolute; left: -20px; top: 0; bottom: 0; width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 0.3s;
+    border-radius: 0 2px 2px 0;
+  }
+  .tag-post-item:hover { padding-left: 12px; }
+  .tag-post-item:hover::before { transform: scaleY(1); }
+  .tag-post-item:hover .tag-post-title { color: var(--accent); }
+
+  .tag-post-date { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .tag-post-title { font-size: 15px; font-weight: 500; color: var(--text); transition: color 0.2s; }
+  .tag-post-tags { display: flex; gap: 6px; justify-content: flex-end; }
+
+  /* ===================== FOOTER ===================== */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 1100px; margin: 0 auto;
+  }
+  .footer-logo { font-family: var(--font-display); font-size: 22px; letter-spacing: 4px; color: var(--text-muted); }
+  .footer-text { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-muted); text-decoration: none;
+    transition: color 0.2s; cursor: none;
+  }
+  .footer-links a:hover { color: var(--accent); }
+
+  /* ===================== PAGE NAV DEMO ===================== */
+  .demo-nav {
+    position: fixed; bottom: 32px; right: 32px; z-index: 200;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .demo-btn {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 10px 18px; border-radius: 6px;
+    cursor: none; transition: all 0.2s;
+    border: 1px solid var(--border);
+    background: rgba(8,12,20,0.9);
+    backdrop-filter: blur(10px);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .demo-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .demo-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,0.08); }
+
+  .demo-label {
+    font-family: var(--font-mono); font-size: 9px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-muted); text-align: right;
+    margin-bottom: 4px; opacity: 0.6;
+  }
+
+  /* Grid overlay aesthetic */
+  .grid-bg {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black, transparent);
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="grid-bg"></div>
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="#" onclick="showPage('top');return false;">
+    <div class="logo-dot"></div>
+    DEV<span>LOG</span>
+  </a>
+  <nav>
+    <a href="#" onclick="showPage('top');return false;" class="active" id="nav-top">記事</a>
+    <a href="#" onclick="showPage('tags');return false;" id="nav-tags">タグ</a>
+    <a href="#" id="nav-about">About</a>
+  </nav>
+  <button class="search-btn">
+    <span class="search-icon">⌕</span> 検索
+  </button>
+</header>
+
+<!-- =================== TOP PAGE =================== -->
+<div class="page active" id="page-top">
+  <div class="hero">
+    <div class="hero-tag">Infrastructure &amp; Certification Blog</div>
+    <h1>BUILD<br><em>INFRA</em><br>CERTIFY.</h1>
+    <p>インフラ構築の実録と資格取得の記録。AWS・Linux・ネットワーク、現場で得た知識を書き残す。</p>
+  </div>
+
+  <div class="featured-section">
+    <div class="section-label">FEATURED</div>
+    <div class="featured-card" onclick="showPage('article')">
+      <div class="featured-content">
+        <div class="post-meta">
+          <span class="tag tag-amber">AWS</span>
+          <span class="tag tag-cyan">SAA</span>
+          <span class="post-date">2025.11.28</span>
+        </div>
+        <h2>AWS Solutions Architect Associate<br>一発合格までの学習ロードマップ</h2>
+        <p>3ヶ月で一発合格した勉強法を全公開。使った教材、模擬試験の回し方、苦手分野の潰し方まで惜しみなく書いた。</p>
+        <a class="read-more" href="#" onclick="showPage('article');return false;">続きを読む</a>
+      </div>
+      <div class="featured-visual">
+        <div class="featured-visual-inner">AWS<br>SAA<br>合格</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="posts-section">
+    <div class="section-label">RECENT POSTS</div>
+    <div class="posts-grid">
+      <div class="post-card" onclick="showPage('article')">
+        <div class="post-meta">
+          <span class="tag tag-cyan">Linux</span>
+          <span class="post-date">2025.11.20</span>
+        </div>
+        <h3>LPIC-1 合格体験記 — 独学60日で取得した勉強法と反省点</h3>
+        <p>Linux の基礎を体系的に学べる LPIC-1。独学で挑んだ60日間の学習記録と、試験本番での注意点をまとめた。</p>
+        <div class="post-card-footer">
+          <a class="read-more" href="#" onclick="showPage('article');return false;">読む</a>
+          <span class="post-date">7 min read</span>
+        </div>
+        <span class="post-num">01</span>
+      </div>
+
+      <div class="post-card" onclick="showPage('article')">
+        <div class="post-meta">
+          <span class="tag tag-violet">Terraform</span>
+          <span class="post-date">2025.11.14</span>
+        </div>
+        <h3>TerraformでAWSインフラをコード管理する — 入門から実運用まで</h3>
+        <p>手作業によるインフラ構築からIaCへ移行した実録。tfstateの管理方法やモジュール分割の考え方を解説。</p>
+        <div class="post-card-footer">
+          <a class="read-more" href="#" onclick="showPage('article');return false;">読む</a>
+          <span class="post-date">9 min read</span>
+        </div>
+        <span class="post-num">02</span>
+      </div>
+
+      <div class="post-card" onclick="showPage('article')">
+        <div class="post-meta">
+          <span class="tag tag-green">ネットワーク</span>
+          <span class="post-date">2025.11.05</span>
+        </div>
+        <h3>ネットワークスペシャリスト試験 — 午後問題を攻略する思考法</h3>
+        <p>IPAの最難関資格のひとつ。午後の長文問題で得点するための読み方・解き方のパターンを体系化した。</p>
+        <div class="post-card-footer">
+          <a class="read-more" href="#" onclick="showPage('article');return false;">読む</a>
+          <span class="post-date">10 min read</span>
+        </div>
+        <span class="post-num">03</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">DEVLOG</div>
+    <div class="footer-text">© 2025 — All rights reserved</div>
+    <div class="footer-links">
+      <a href="#">GitHub</a>
+      <a href="#">Twitter</a>
+      <a href="#">RSS</a>
+    </div>
+  </footer>
+</div>
+
+<!-- =================== ARTICLE PAGE =================== -->
+<div class="page" id="page-article">
+  <div class="article-layout">
+    <main>
+      <div class="article-header">
+        <div class="post-meta">
+          <span class="tag tag-amber">AWS</span>
+          <span class="tag tag-cyan">SAA</span>
+          <span class="post-date">2025年11月28日</span>
+        </div>
+        <h1>AWS Solutions Architect Associate 一発合格までの学習ロードマップ</h1>
+        <p>3ヶ月で一発合格した勉強法を全公開。使った教材、模擬試験の回し方、苦手分野の潰し方まで惜しみなく書いた。</p>
+      </div>
+
+      <div class="article-divider"></div>
+
+      <div class="article-body">
+        <h2>なぜSAAを受けたか</h2>
+        <p>業務でAWSを触る機会が増えてきたが、場当たり的な知識では限界を感じていた。体系的に学び直すためにSAAを選んだ。クラウド資格の中でも認知度が高く、転職市場での評価も高い点も理由のひとつだ。</p>
+
+        <div class="callout">
+          📋 試験概要：65問・130分・720点以上で合格（1000点満点）。出題範囲はコンピューティング・ストレージ・ネットワーク・セキュリティ・データベースなど幅広い。
+        </div>
+
+        <h2>使った教材と学習スケジュール</h2>
+        <p>メイン教材は「AWS認定ソリューションアーキテクト－アソシエイト教科書」と、UdemyのStephane Marek講座。前者で体系を押さえ、後者でハンズオンを補完した。</p>
+        <p>模擬試験はTutorialsDojo（旧Jon Bonso）を使った。本番に近い難易度で、解説が非常に丁寧なため弱点把握に最適だ。</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">学習スケジュール概要</span>
+            <div class="code-dots">
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+              <div class="code-dot"></div>
+            </div>
+          </div>
+          <div class="code-body">
+            <pre><span class="cm"># 1ヶ月目：インプット期</span>
+<span class="fn">Week 1-2</span>  教科書を通読（EC2, S3, VPC, IAMを重点的に）
+<span class="fn">Week 3-4</span>  Udemy講座でハンズオン（実際にAWSコンソールを触る）
+
+<span class="cm"># 2ヶ月目：問題演習期</span>
+<span class="fn">Week 5-6</span>  TutorialsDojo 模擬試験1〜3周目
+<span class="fn">Week 7-8</span>  苦手サービス（Route 53, CloudFront）を重点復習
+
+<span class="cm"># 3ヶ月目：仕上げ期</span>
+<span class="fn">Week 9-10</span> 模擬試験 4〜5周目、正答率 <span class="num">85%</span> 以上を目標に
+<span class="fn">Week 11</span>   AWS公式の模擬試験を本番形式で実施
+<span class="fn">Week 12</span>   弱点最終確認 → 本番受験</pre>
+          </div>
+        </div>
+
+        <h2>試験当日の注意点</h2>
+        <p>問題文が長いため、読むスピードと取捨選択の判断が重要になる。「最もコスト効率が高い」「最も運用負荷が低い」といった修飾語を見落とさないようにすること。迷ったらフラグを立てて後回しにし、まず全問に目を通す戦略が有効だった。</p>
+      </div>
+    </main>
+
+    <aside class="sidebar">
+      <div class="sidebar-sticky">
+        <div class="sidebar-block">
+          <div class="sidebar-title">目次</div>
+          <ul class="toc-list">
+            <li class="toc-item active">なぜSAAを受けたか</li>
+            <li class="toc-item">使った教材と学習スケジュール</li>
+            <li class="toc-item">試験当日の注意点</li>
+          </ul>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">関連記事</div>
+          <div class="related-post">
+            <div class="related-item" onclick="showPage('article')">LPIC-1 合格体験記 — 独学60日で取得した勉強法</div>
+            <div class="related-item" onclick="showPage('article')">TerraformでAWSインフラをコード管理する</div>
+          </div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">タグ</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+            <span class="tag tag-amber" onclick="showPage('tags')">AWS</span>
+            <span class="tag tag-cyan" onclick="showPage('tags')">SAA</span>
+            <span class="tag tag-violet" onclick="showPage('tags')">資格</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- =================== TAG/CATEGORY PAGE =================== -->
+<div class="page" id="page-tags">
+  <div class="tag-page">
+    <div class="tag-page-header">
+      <h1>TAGS &amp; <span>TOPICS</span></h1>
+      <p>// カテゴリ別に記事を探す</p>
+    </div>
+
+    <div class="all-tags">
+      <span class="tag-pill tag-pill-active">すべて</span>
+      <span class="tag-pill tag-pill-outline">AWS</span>
+      <span class="tag-pill tag-pill-outline">Linux</span>
+      <span class="tag-pill tag-pill-outline">ネットワーク</span>
+      <span class="tag-pill tag-pill-outline">Terraform</span>
+      <span class="tag-pill tag-pill-outline">Docker</span>
+      <span class="tag-pill tag-pill-outline">Kubernetes</span>
+      <span class="tag-pill tag-pill-outline">資格</span>
+      <span class="tag-pill tag-pill-outline">セキュリティ</span>
+      <span class="tag-pill tag-pill-outline">監視・運用</span>
+    </div>
+
+    <div class="tag-posts">
+      <div class="tag-post-item" onclick="showPage('article')">
+        <span class="tag-post-date">2025.11.28</span>
+        <span class="tag-post-title">AWS SAA 一発合格までの学習ロードマップ</span>
+        <div class="tag-post-tags"><span class="tag tag-amber">AWS</span><span class="tag tag-cyan">資格</span></div>
+      </div>
+      <div class="tag-post-item" onclick="showPage('article')">
+        <span class="tag-post-date">2025.11.20</span>
+        <span class="tag-post-title">LPIC-1 合格体験記 — 独学60日で取得した勉強法と反省点</span>
+        <div class="tag-post-tags"><span class="tag tag-cyan">Linux</span><span class="tag tag-cyan">資格</span></div>
+      </div>
+      <div class="tag-post-item" onclick="showPage('article')">
+        <span class="tag-post-date">2025.11.14</span>
+        <span class="tag-post-title">TerraformでAWSインフラをコード管理する — 入門から実運用まで</span>
+        <div class="tag-post-tags"><span class="tag tag-violet">Terraform</span><span class="tag tag-amber">AWS</span></div>
+      </div>
+      <div class="tag-post-item" onclick="showPage('article')">
+        <span class="tag-post-date">2025.11.05</span>
+        <span class="tag-post-title">ネットワークスペシャリスト試験 — 午後問題を攻略する思考法</span>
+        <div class="tag-post-tags"><span class="tag tag-green">ネットワーク</span><span class="tag tag-cyan">資格</span></div>
+      </div>
+      <div class="tag-post-item" onclick="showPage('article')">
+        <span class="tag-post-date">2025.10.22</span>
+        <span class="tag-post-title">KubernetesクラスタをEKSで構築する — 本番運用を見据えた設計</span>
+        <div class="tag-post-tags"><span class="tag tag-violet">Kubernetes</span><span class="tag tag-amber">AWS</span></div>
+      </div>
+      <div class="tag-post-item" onclick="showPage('article')">
+        <span class="tag-post-date">2025.10.10</span>
+        <span class="tag-post-title">PrometheusとGrafanaで始めるインフラ監視の基本構成</span>
+        <div class="tag-post-tags"><span class="tag tag-green">監視・運用</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEMO NAV -->
+<div class="demo-nav">
+  <div class="demo-label">PAGES</div>
+  <button class="demo-btn active" id="demo-top" onclick="showPage('top')">TOP 一覧</button>
+  <button class="demo-btn" id="demo-article" onclick="showPage('article')">記事詳細</button>
+  <button class="demo-btn" id="demo-tags" onclick="showPage('tags')">タグ一覧</button>
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mouseX = 0, mouseY = 0;
+  let ringX = 0, ringY = 0;
+  document.addEventListener('mousemove', e => {
+    mouseX = e.clientX; mouseY = e.clientY;
+    cursor.style.left = mouseX + 'px';
+    cursor.style.top = mouseY + 'px';
+  });
+  function animateRing() {
+    ringX += (mouseX - ringX) * 0.12;
+    ringY += (mouseY - ringY) * 0.12;
+    ring.style.left = ringX + 'px';
+    ring.style.top = ringY + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  // Page switching
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('demo-' + name).classList.add('active');
+    if (name === 'top') document.getElementById('nav-top').classList.add('active');
+    if (name === 'tags') document.getElementById('nav-tags').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Tag pill interaction
+  document.querySelectorAll('.tag-pill').forEach(pill => {
+    pill.addEventListener('click', function() {
+      document.querySelectorAll('.tag-pill').forEach(p => {
+        p.className = 'tag-pill tag-pill-outline';
+      });
+      this.className = 'tag-pill tag-pill-active';
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PostCard from '../components/PostCard.astro';
+import TagBadge from '../components/TagBadge.astro';
+
+const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+const posts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const featuredPost = posts.find(p => p.data.featured) ?? posts[0];
+const recentPosts = posts.filter(p => p.id !== featuredPost?.id).slice(0, 6);
+---
+
+<Base title="FTechNotes" description="興味のままに気のままに、調べたことを・実践したことをまとめていくブログ">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-tag">Personal Tech Notes &amp; Curiosity Log</div>
+    <h1>AM I<br /><em>NULL</em><br />AFTER ALL?</h1>
+    <p>興味のままに気のままに、<br />調べたことを・実践したことをまとめていくブログ</p>
+  </section>
+
+  <!-- Featured Post -->
+  {featuredPost && (
+    <section class="featured-section">
+      <div class="section-label">FEATURED</div>
+      <a href={`/posts/${featuredPost.id}`} class="featured-card">
+        <div class="featured-content">
+          <div class="post-meta">
+            {featuredPost.data.category && <TagBadge tag={featuredPost.data.category} />}
+            {featuredPost.data.tags.slice(0, 2).map(tag =>
+              tag !== featuredPost.data.category && <TagBadge tag={tag} />
+            )}
+            <span class="post-date">
+              {featuredPost.data.pubDate.toLocaleDateString('ja-JP', {
+                year: 'numeric', month: '2-digit', day: '2-digit'
+              }).replace(/\//g, '.')}
+            </span>
+          </div>
+          <h2>{featuredPost.data.title}</h2>
+          <p>{featuredPost.data.description}</p>
+          <span class="read-more">続きを読む</span>
+        </div>
+        <div class="featured-visual">
+          <div class="featured-visual-inner">
+            {featuredPost.data.category?.split('').join('<br />') || 'DEV<br />LOG'}
+          </div>
+        </div>
+      </a>
+    </section>
+  )}
+
+  <!-- Recent Posts Grid -->
+  {recentPosts.length > 0 && (
+    <section class="posts-section">
+      <div class="section-label">RECENT POSTS</div>
+      <div class="posts-grid">
+        {recentPosts.map((post, i) => (
+          <PostCard
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate}
+            slug={post.id}
+            tags={post.data.tags}
+            num={i + 1}
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
+  {posts.length === 0 && (
+    <div class="empty-state">
+      <p>まだ記事がありません。最初の記事を書いてみましょう。</p>
+    </div>
+  )}
+</Base>
+
+<style>
+  /* Hero */
+  .hero {
+    padding: 80px 40px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: 'NULL';
+    position: absolute;
+    right: -10px; top: 10px;
+    font-family: var(--font-display);
+    font-size: 220px;
+    letter-spacing: -8px;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(0,229,255,0.04);
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+  }
+
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-tag::before { content: '//'; opacity: 0.5; }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(44px, 6.5vw, 88px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: transparent;
+    -webkit-text-stroke: 2px var(--accent);
+    text-shadow: 0 0 40px rgba(0,229,255,0.2);
+  }
+  .hero p { color: var(--text-dim); font-size: 15px; max-width: 460px; line-height: 1.8; }
+
+  /* Section label */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Featured */
+  .featured-section {
+    max-width: 1100px;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .featured-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.3s, transform 0.3s;
+    position: relative;
+  }
+  .featured-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,229,255,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .featured-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .featured-content { padding: 44px; }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .post-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .featured-content h2 {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .featured-content p {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 28px;
+  }
+
+  .read-more {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: gap 0.2s;
+  }
+  .read-more::after { content: '→'; }
+  .featured-card:hover .read-more { gap: 14px; }
+
+  .featured-visual {
+    background: var(--bg3);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+  }
+  .featured-visual-inner {
+    font-family: var(--font-display);
+    font-size: 72px;
+    letter-spacing: 2px;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(0,229,255,0.3);
+    transform: rotate(-15deg);
+    user-select: none;
+    line-height: 1;
+    text-align: center;
+  }
+  .featured-visual::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(0,229,255,0.08), transparent 70%);
+  }
+
+  /* Posts grid */
+  .posts-section {
+    max-width: 1100px;
+    margin: 0 auto 80px;
+    padding: 0 40px;
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    max-width: 1100px;
+    margin: 60px auto;
+    padding: 0 40px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .posts-grid { grid-template-columns: repeat(2, 1fr); }
+    .featured-card { grid-template-columns: 1fr; }
+    .featured-visual { min-height: 200px; }
+  }
+
+  @media (max-width: 768px) {
+    .hero { padding: 60px 20px 40px; }
+    .featured-section, .posts-section { padding: 0 20px; }
+    .posts-grid { grid-template-columns: 1fr; }
+    .featured-content { padding: 28px; }
+  }
+</style>

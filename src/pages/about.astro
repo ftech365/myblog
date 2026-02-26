@@ -1,0 +1,179 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="About" description="インフラ・資格系技術ブログ FTechNotes の管理者プロフィール">
+  <div class="about-page">
+    <!-- Header -->
+    <div class="about-header">
+      <p class="label">// ABOUT</p>
+      <h1>WHO <span>AM I</span></h1>
+    </div>
+
+    <!-- Profile card -->
+    <div class="profile-card">
+      <div class="profile-avatar">
+        <div class="avatar-inner">DEV</div>
+      </div>
+      <div class="profile-info">
+        <h2 class="profile-name">2等兵エンジニア</h2>
+        <p class="profile-title">Infrastructure Engineer / Blogger</p>
+        <p class="profile-bio">
+          基本インフラ屋、ちょびっと開発。インフラ開発問わず興味のある分野を悪食的にアクセスしています。
+          本ブログはその軌跡を残していこうかなと。
+        </p>
+        <div class="profile-links">
+          <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="profile-link">GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blog info -->
+    <div class="section">
+      <div class="section-label">ABOUT THIS BLOG</div>
+      <div class="blog-info">
+        <p>
+          このブログは <strong>Astro</strong> + <strong>Tailwind CSS</strong> + <strong>GitHub Pages</strong> で構築しています。
+          記事の管理は <strong>Decap CMS</strong> または <strong>Claude Code</strong> を使って行っています。
+        </p>
+        <p>
+          テーマはインフラ・資格系に特化しており、AWS / Linux / Terraform / Kubernetes / ネットワーク / 資格取得記録などを扱っています。
+        </p>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .about-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 40px 80px;
+  }
+
+  .about-header { margin-bottom: 56px; }
+  .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 8vw, 72px);
+    letter-spacing: 3px;
+    line-height: 1;
+  }
+  h1 span { color: var(--accent); text-shadow: 0 0 30px rgba(0,229,255,0.4); }
+
+  /* Profile */
+  .profile-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 40px;
+    margin-bottom: 60px;
+    position: relative;
+  }
+  .profile-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,229,255,0.03) 0%, transparent 60%);
+    border-radius: 12px;
+    pointer-events: none;
+  }
+
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .profile-avatar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(0,229,255,0.1), transparent 70%);
+    border-radius: 12px;
+  }
+  .avatar-inner {
+    font-family: var(--font-display);
+    font-size: 36px;
+    letter-spacing: 2px;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(0,229,255,0.5);
+  }
+
+  .profile-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .profile-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .profile-bio {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .profile-links { display: flex; gap: 12px; }
+  .profile-link {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .profile-link:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Sections */
+  .section { margin-bottom: 56px; }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Blog info */
+  .blog-info { color: var(--text-dim); line-height: 1.9; }
+  .blog-info p { margin-bottom: 12px; }
+  .blog-info strong { color: var(--accent); }
+
+  @media (max-width: 768px) {
+    .about-page { padding: 40px 20px; }
+    .profile-card { grid-template-columns: 1fr; }
+}
+</style>

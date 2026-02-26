@@ -1,0 +1,50 @@
+---
+interface Props {
+  tag: string;
+  href?: string;
+}
+
+const { tag, href } = Astro.props;
+
+// タグに応じた色クラスを返す
+function getTagColor(tag: string): string {
+  const colors: Record<string, string> = {
+    'AWS':        'tag-amber',
+    'SAA':        'tag-cyan',
+    'Linux':      'tag-cyan',
+    'Terraform':  'tag-violet',
+    'Kubernetes': 'tag-violet',
+    'Docker':     'tag-cyan',
+    'ネットワーク':  'tag-green',
+    'セキュリティ':  'tag-amber',
+    '資格':        'tag-cyan',
+    '監視・運用':   'tag-green',
+    'IaC':        'tag-violet',
+    'Ansible':    'tag-green',
+  };
+  return colors[tag] || 'tag-cyan';
+}
+
+const colorClass = getTagColor(tag);
+---
+
+{href ? (
+  <a href={href} class:list={['tag', colorClass]}>{tag}</a>
+) : (
+  <span class:list={['tag', colorClass]}>{tag}</span>
+)}
+
+<style>
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 3px;
+    transition: transform 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .tag:hover { transform: translateY(-1px); }
+</style>

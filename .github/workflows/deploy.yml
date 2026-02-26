@@ -1,0 +1,59 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 最小権限の原則: 必要な権限のみ付与
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時デプロイを1つに制限
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # package-lock.json を厳密に使用（依存関係の改ざん防止）
+      - name: Install dependencies
+        run: npm ci
+
+      # Astro ビルド
+      - name: Build site
+        run: npm run build
+
+      # 全文検索インデックスの生成
+      - name: Build Pagefind index
+        run: npx pagefind --site dist
+
+      # ビルド成果物をアーティファクトとしてアップロード
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

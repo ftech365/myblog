@@ -1,0 +1,126 @@
+---
+import TagBadge from './TagBadge.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  slug: string;
+  tags?: string[];
+  num?: number;
+}
+
+const { title, description, pubDate, slug, tags = [], num } = Astro.props;
+
+const formattedDate = pubDate.toLocaleDateString('ja-JP', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).replace(/\//g, '.');
+---
+
+<a href={`/posts/${slug}`} class="post-card">
+  <div class="post-meta">
+    {tags.slice(0, 2).map(tag => <TagBadge tag={tag} />)}
+    <span class="post-date">{formattedDate}</span>
+  </div>
+  <h3>{title}</h3>
+  <p>{description}</p>
+  <div class="post-card-footer">
+    <span class="read-more">読む</span>
+  </div>
+  {num !== undefined && <span class="post-num">{String(num).padStart(2, '0')}</span>}
+</a>
+
+<style>
+  .post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+  }
+  .post-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .post-card:hover {
+    border-color: rgba(0,229,255,0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+  .post-card:hover::before { transform: scaleX(1); }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .post-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.45;
+    margin: 14px 0 10px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .post-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+  }
+
+  .read-more {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: gap 0.2s;
+  }
+  .read-more::after { content: '→'; }
+  .post-card:hover .read-more { gap: 14px; }
+
+  .post-num {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.04);
+    position: absolute;
+    bottom: 12px; right: 20px;
+    user-select: none;
+    letter-spacing: -2px;
+  }
+</style>
