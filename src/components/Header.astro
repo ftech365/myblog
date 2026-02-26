@@ -1,19 +1,19 @@
 ---
-const base = import.meta.env.BASE_URL;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const navLinks = [
-  { href: `${base}`, label: '記事' },
-  { href: `${base}tags`, label: 'タグ' },
-  { href: `${base}about`, label: 'About' },
+  { href: `${base}/`, label: '記事' },
+  { href: `${base}/tags`, label: 'タグ' },
+  { href: `${base}/about`, label: 'About' },
 ];
 const currentPath = Astro.url.pathname;
 function isActive(href: string) {
-  if (href === base) return currentPath === base || currentPath === `${base}/`;
+  if (href === `${base}/`) return currentPath === `${base}/` || currentPath === base;
   return currentPath.startsWith(href);
 }
 ---
 <header>
   <!-- Logo -->
-  <a href={base} class="logo">
+  <a href={`${base}/`} class="logo">
     <div class="logo-dot"></div>
     FTech<span>Notes</span>
   </a>
@@ -29,7 +29,7 @@ function isActive(href: string) {
     ))}
   </nav>
   <!-- Search -->
-  <a href={`${base}search`} class="search-btn">
+  <a href={`${base}/search`} class="search-btn">
     <span>⌕</span> 検索
   </a>
 </header>
