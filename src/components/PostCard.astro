@@ -19,7 +19,7 @@ const formattedDate = pubDate.toLocaleDateString('ja-JP', {
 }).replace(/\//g, '.');
 ---
 
-<a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/posts/${slug}`}>
+<a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/posts/${slug}`} class="post-card">
   <div class="post-meta">
     {tags.slice(0, 2).map(tag => <TagBadge tag={tag} />)}
     <span class="post-date">{formattedDate}</span>
