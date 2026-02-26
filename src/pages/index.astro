@@ -22,7 +22,7 @@ const recentPosts = posts.filter(p => p.id !== featuredPost?.id).slice(0, 6);
   {featuredPost && (
     <section class="featured-section">
       <div class="section-label">FEATURED</div>
-      <a href={`/posts/${featuredPost.id}`} class="featured-card">
+      <a href={`${import.meta.env.BASE_URL}posts/${featuredPost.id}`} class="featured-card">
         <div class="featured-content">
           <div class="post-meta">
             {featuredPost.data.category && <TagBadge tag={featuredPost.data.category} />}
