@@ -1,0 +1,284 @@
+<div class="tech-stack-wrap">
+
+  <!-- BUILD FLOW -->
+  <div class="flow-section">
+    <div class="section-label">BUILD FLOW — 記事が公開されるまでの流れ</div>
+    <div class="flow">
+      <div class="flow-step flow-step-astro">
+        <div class="flow-icon">✍️</div>
+        <div class="flow-num">STEP 01</div>
+        <div class="flow-name">Markdown</div>
+        <div class="flow-desc">記事を<br />.md ファイルで書く</div>
+      </div>
+      <div class="flow-step flow-step-astro">
+        <div class="flow-icon">🚀</div>
+        <div class="flow-num">STEP 02</div>
+        <div class="flow-name">Astro Build</div>
+        <div class="flow-desc">静的HTMLに<br />変換・出力</div>
+      </div>
+      <div class="flow-step flow-step-tailwind">
+        <div class="flow-icon">🎨</div>
+        <div class="flow-num">STEP 03</div>
+        <div class="flow-name">Tailwind</div>
+        <div class="flow-desc">スタイルを<br />CSSに変換</div>
+      </div>
+      <div class="flow-step flow-step-expressive">
+        <div class="flow-icon">💻</div>
+        <div class="flow-num">STEP 04</div>
+        <div class="flow-name">Expressive Code</div>
+        <div class="flow-desc">コードブロックを<br />美しく変換</div>
+      </div>
+      <div class="flow-step flow-step-pagefind">
+        <div class="flow-icon">🔍</div>
+        <div class="flow-num">STEP 05</div>
+        <div class="flow-name">Pagefind</div>
+        <div class="flow-desc">検索インデックスを<br />自動生成</div>
+      </div>
+      <div class="flow-step flow-step-deploy">
+        <div class="flow-icon">🌐</div>
+        <div class="flow-num">STEP 06</div>
+        <div class="flow-name">GitHub Pages</div>
+        <div class="flow-desc">全ファイルを<br />公開・配信</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULES -->
+  <div class="flow-section">
+    <div class="section-label">MODULES — 各モジュールの詳細</div>
+  </div>
+
+  <div class="modules-grid">
+
+    <div class="theme-astro">
+      <div class="module-card">
+        <div class="module-header">
+          <div class="module-icon">🚀</div>
+          <div class="module-title-wrap">
+            <div class="module-name">Astro</div>
+            <div class="module-version">v5.x — フレームワーク</div>
+            <div class="module-role">ブログ全体の骨格・エンジン</div>
+          </div>
+        </div>
+        <div class="module-body">
+          <ul class="feature-list">
+            <li class="feature-item"><div class="feature-dot">📁</div><span><strong>ページルーティング</strong> — src/pages/ のファイル構造がそのままURLになる</span></li>
+            <li class="feature-item"><div class="feature-dot">📝</div><span><strong>Markdownの記事管理</strong> — src/content/posts/ のMDファイルを自動で記事として読み込む</span></li>
+            <li class="feature-item"><div class="feature-dot">⚡</div><span><strong>静的HTML出力</strong> — JavaScriptをほぼ出力しないため表示が超高速</span></li>
+            <li class="feature-item"><div class="feature-dot">🔒</div><span><strong>型安全なスキーマ</strong> — Zodで記事のフロントマターをバリデート</span></li>
+          </ul>
+          <span class="module-tag">全体の司令塔</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="theme-tailwind">
+      <div class="module-card">
+        <div class="module-header">
+          <div class="module-icon">🎨</div>
+          <div class="module-title-wrap">
+            <div class="module-name">Tailwind CSS</div>
+            <div class="module-version">v4.x — CSSフレームワーク</div>
+            <div class="module-role">見た目・デザインの実装</div>
+          </div>
+        </div>
+        <div class="module-body">
+          <ul class="feature-list">
+            <li class="feature-item"><div class="feature-dot">🏷️</div><span><strong>ユーティリティクラス</strong> — class="bg-gray-900 p-4" のようにHTMLに直接スタイルを書く</span></li>
+            <li class="feature-item"><div class="feature-dot">🌙</div><span><strong>ダークモード対応</strong> — dark: プレフィックスで切り替えを簡単に実装</span></li>
+            <li class="feature-item"><div class="feature-dot">📱</div><span><strong>レスポンシブ対応</strong> — md: lg: などのプレフィックスで画面サイズ別に調整</span></li>
+            <li class="feature-item"><div class="feature-dot">⚙️</div><span><strong>v4の変更点</strong> — 設定ファイル不要、CSSファイル内に直接設定を記述する方式に</span></li>
+          </ul>
+          <span class="module-tag">デザイン担当</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="theme-expressive">
+      <div class="module-card">
+        <div class="module-header">
+          <div class="module-icon">💻</div>
+          <div class="module-title-wrap">
+            <div class="module-name">Expressive Code</div>
+            <div class="module-version">最新版 — コード表示ライブラリ</div>
+            <div class="module-role">コードブロックの表示強化</div>
+          </div>
+        </div>
+        <div class="module-body">
+          <ul class="feature-list">
+            <li class="feature-item"><div class="feature-dot">🌈</div><span><strong>シンタックスハイライト</strong> — 言語ごとに色付けして読みやすく表示</span></li>
+            <li class="feature-item"><div class="feature-dot">📋</div><span><strong>コピーボタン自動追加</strong> — すべてのコードブロックにワンクリックコピーが付く</span></li>
+            <li class="feature-item"><div class="feature-dot">📂</div><span><strong>ファイル名・行番号表示</strong> — title="config.ts" と書くだけでタブが表示される</span></li>
+            <li class="feature-item"><div class="feature-dot">✨</div><span><strong>行ハイライト</strong> — {"{3-5}"} のように書くと特定行を強調表示できる</span></li>
+          </ul>
+          <span class="module-tag">コード表示担当</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="theme-pagefind">
+      <div class="module-card">
+        <div class="module-header">
+          <div class="module-icon">🔍</div>
+          <div class="module-title-wrap">
+            <div class="module-name">Pagefind</div>
+            <div class="module-version">最新版 — 検索エンジン</div>
+            <div class="module-role">サーバーなしの全文検索</div>
+          </div>
+        </div>
+        <div class="module-body">
+          <ul class="feature-list">
+            <li class="feature-item"><div class="feature-dot">📦</div><span><strong>静的インデックス生成</strong> — ビルド後に dist/ を解析して検索用ファイルを自動生成</span></li>
+            <li class="feature-item"><div class="feature-dot">🚫</div><span><strong>サーバー不要</strong> — 生成された静的ファイルだけで全文検索が動く</span></li>
+            <li class="feature-item"><div class="feature-dot">🇯🇵</div><span><strong>日本語対応</strong> — 日本語テキストの分かち書きも自動処理</span></li>
+            <li class="feature-item"><div class="feature-dot">⚡</div><span><strong>高速検索</strong> — インデックスが軽量なため検索レスポンスが速い</span></li>
+          </ul>
+          <span class="module-tag">検索担当</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RELATIONS -->
+  <div class="relation-section">
+    <div class="section-label">RELATIONS — モジュール間の連携</div>
+    <div class="relation-box">
+      <div class="relation-row">
+        <div class="relation-module"><div class="relation-dot dot-astro"></div><span class="label-astro">Astro</span></div>
+        <div class="relation-desc">全体を統括。Tailwind・Expressive Codeはビルド時にAstroが呼び出す <span class="arrow-badge">astro.config.mjs で統合</span></div>
+      </div>
+      <div class="relation-row">
+        <div class="relation-module"><div class="relation-dot dot-tailwind"></div><span class="label-tailwind">Tailwind</span></div>
+        <div class="relation-desc">Astroコンポーネント内のclassを読み取り、必要なCSSだけを生成・出力する <span class="arrow-badge">未使用のCSSは自動削除</span></div>
+      </div>
+      <div class="relation-row">
+        <div class="relation-module"><div class="relation-dot dot-expressive"></div><span class="label-expressive">Expressive Code</span></div>
+        <div class="relation-desc">MarkdownのコードブロックをAstroがHTMLに変換する際に割り込んで、装飾済みのHTMLに置き換える <span class="arrow-badge">Markdownを書くだけで自動適用</span></div>
+      </div>
+      <div class="relation-row">
+        <div class="relation-module"><div class="relation-dot dot-pagefind"></div><span class="label-pagefind">Pagefind</span></div>
+        <div class="relation-desc">Astroのビルドが完了した後に dist/ フォルダを読み込んで検索インデックスを生成する <span class="arrow-badge">ビルド後に実行</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .tech-stack-wrap {
+    margin: 0 -8px;
+    font-family: var(--font-mono, 'Space Mono', monospace);
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text-muted, #64748b); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border, #1e2d47); }
+
+  /* Flow */
+  .flow-section { margin-bottom: 40px; }
+  .flow {
+    display: flex; align-items: stretch;
+    background: var(--surface, #111827);
+    border: 1px solid var(--border, #1e2d47);
+    border-radius: 12px; overflow: hidden;
+  }
+  .flow-step {
+    flex: 1; padding: 20px 12px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; position: relative;
+    transition: background 0.2s;
+  }
+  .flow-step:hover { background: rgba(255,255,255,0.03); }
+  .flow-step:not(:last-child)::after {
+    content: '→'; position: absolute; right: -10px; top: 50%;
+    transform: translateY(-50%); font-size: 16px;
+    color: var(--text-muted, #64748b); z-index: 2;
+  }
+  .flow-icon { font-size: 24px; margin-bottom: 10px; }
+  .flow-num { font-size: 9px; letter-spacing: 2px; color: var(--text-muted, #64748b); margin-bottom: 4px; }
+  .flow-name { font-size: 11px; font-weight: 700; color: var(--text, #e2e8f0); margin-bottom: 6px; }
+  .flow-desc { font-size: 10px; color: var(--text-dim, #94a3b8); line-height: 1.6; font-family: var(--font-body, sans-serif); }
+
+  .flow-step-astro .flow-name { color: #00e5ff; }
+  .flow-step-tailwind .flow-name { color: #a78bfa; }
+  .flow-step-expressive .flow-name { color: #f59e0b; }
+  .flow-step-pagefind .flow-name { color: #22c55e; }
+  .flow-step-deploy .flow-name { color: #00e5ff; }
+
+  /* Modules grid */
+  .modules-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 16px; margin-bottom: 40px;
+  }
+  .module-card {
+    background: var(--surface, #111827);
+    border: 1px solid var(--border, #1e2d47);
+    border-radius: 10px; overflow: hidden;
+  }
+  .module-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 20px; border-bottom: 1px solid var(--border, #1e2d47);
+  }
+  .module-icon { font-size: 28px; flex-shrink: 0; }
+  .module-name { font-size: 16px; font-weight: 700; color: var(--text, #e2e8f0); margin-bottom: 2px; }
+  .module-version { font-size: 10px; color: var(--text-muted, #64748b); letter-spacing: 1px; margin-bottom: 2px; }
+  .module-role { font-size: 11px; color: var(--text-dim, #94a3b8); font-family: var(--font-body, sans-serif); }
+  .module-body { padding: 16px 20px; }
+
+  .theme-astro .module-header { border-top: 2px solid #00e5ff; }
+  .theme-astro .module-name { color: #00e5ff; }
+  .theme-tailwind .module-header { border-top: 2px solid #a78bfa; }
+  .theme-tailwind .module-name { color: #a78bfa; }
+  .theme-expressive .module-header { border-top: 2px solid #f59e0b; }
+  .theme-expressive .module-name { color: #f59e0b; }
+  .theme-pagefind .module-header { border-top: 2px solid #22c55e; }
+  .theme-pagefind .module-name { color: #22c55e; }
+
+  .feature-list { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 8px; }
+  .feature-item { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; }
+  .feature-dot { flex-shrink: 0; font-size: 14px; }
+  .feature-item span { color: var(--text-dim, #94a3b8); line-height: 1.6; font-family: var(--font-body, sans-serif); }
+  .feature-item strong { color: var(--text, #e2e8f0); }
+  .module-tag {
+    display: inline-block; font-size: 9px; letter-spacing: 2px;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 3px;
+    background: rgba(255,255,255,0.05); color: var(--text-muted, #64748b);
+  }
+
+  /* Relations */
+  .relation-section { margin-bottom: 8px; }
+  .relation-box {
+    background: var(--surface, #111827);
+    border: 1px solid var(--border, #1e2d47); border-radius: 10px; overflow: hidden;
+  }
+  .relation-row {
+    display: grid; grid-template-columns: 160px 1fr;
+    gap: 20px; padding: 16px 20px; align-items: center;
+    border-bottom: 1px solid var(--border, #1e2d47);
+  }
+  .relation-row:last-child { border-bottom: none; }
+  .relation-module { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; }
+  .relation-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .relation-desc { font-size: 12px; color: var(--text-dim, #94a3b8); line-height: 1.7; font-family: var(--font-body, sans-serif); }
+  .arrow-badge {
+    display: inline-block; font-family: var(--font-mono, monospace); font-size: 10px;
+    padding: 2px 8px; border-radius: 3px;
+    background: rgba(255,255,255,0.05); color: var(--text-muted, #64748b); margin-left: 6px;
+  }
+  .dot-astro { background: #00e5ff; } .label-astro { color: #00e5ff; }
+  .dot-tailwind { background: #a78bfa; } .label-tailwind { color: #a78bfa; }
+  .dot-expressive { background: #f59e0b; } .label-expressive { color: #f59e0b; }
+  .dot-pagefind { background: #22c55e; } .label-pagefind { color: #22c55e; }
+
+  @media (max-width: 768px) {
+    .flow { flex-direction: column; }
+    .flow-step:not(:last-child)::after { content: '↓'; right: auto; top: auto; bottom: -12px; left: 50%; transform: translateX(-50%); }
+    .modules-grid { grid-template-columns: 1fr; }
+    .relation-row { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
