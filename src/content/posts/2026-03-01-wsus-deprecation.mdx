@@ -1,0 +1,222 @@
+---
+title: "WSUS非推奨化でWindows Update管理はどう変わるか — 帯域・スケジュール・閉域網・コストの観点で整理する"
+description: "2024年9月に発表されたWSUS非推奨化を受け、代替手段であるIntune・Windows Autopatch・Azure Update Managerの特徴を、NW帯域・配信スケジュール・緊急停止・閉域網対応・コスト構造の観点から整理する。"
+pubDate: 2026-03-01
+tags: ["Windows", "WSUS", "Intune", "WindowsUpdate", "監視・運用"]
+category: "監視・運用"
+draft: false
+---
+import WsusDiagram from '../../components/WsusDiagram.astro';
+
+## はじめに
+
+2024年9月、Microsoftは20年以上にわたって企業のWindows更新管理を支えてきた **WSUS（Windows Server Update Services）** の非推奨化を発表した。
+
+「廃止」という言葉が一人歩きしているが、正確には「新機能への投資を停止する」という意味だ。現行機能は維持され、すぐに使えなくなるわけではない。しかし長期的には移行が不可避であり、何に・どう移行するかを今から検討しておく必要がある。
+
+本記事では運用保守の観点から、WSUSの代替手段を以下の軸で整理する。
+
+---
+
+## 目次
+
+- [WSUSの現状と廃止スケジュール](#wsusの現状と廃止スケジュール)
+- [Microsoftが推奨する代替手段](#microsoftが推奨する代替手段)
+- [NW帯域の観点](#nw帯域の観点)
+- [配信時期の調整](#配信時期の調整)
+- [緊急停止・運用保守の観点](#緊急停止運用保守の観点)
+- [閉域網への対応](#閉域網への対応)
+- [コスト構造の変化と企業への影響](#コスト構造の変化と企業への影響)
+- [まとめ](#まとめ)
+- [参考リンク](#参考リンク)
+
+---
+
+## WSUSの現状と廃止スケジュール
+
+Microsoftは2024年9月20日付けのブログ「Windows Server Update Services (WSUS) deprecation」で非推奨化を発表した。主な内容は以下のとおりだ。
+
+- 新機能の開発・機能要望の受付を停止する
+- 現在の機能は維持し、WSUSチャネルを通じた更新プログラムの提供は継続する
+- Windows Server 2025にも引き続きWSUSが搭載される
+
+Windows Server 2025のサポート期間は2034年10月まで（最長10年）のため、少なくとも2034年頃まではWSUSを利用できる見通しだ。
+
+> **ポイント**: 「廃止」ではなく「非推奨（Deprecated）」だ。ただし、今後Windows Updateの仕様変更が発生した場合、WSUSはその変更に追随しない可能性がある。これが最大のリスクだ。
+
+---
+
+## Microsoftが推奨する代替手段
+
+Microsoftが推奨する主な移行先は以下の3つだ。
+
+| ツール | 対象 | 費用 |
+|---|---|---|
+| **Microsoft Intune**（+ Windows Autopatch） | クライアントPC（Windows 10/11） | 有償（Microsoft 365 E3/E5等に含む） |
+| **Azure Update Manager** | サーバー（オンプレ・Azure・他社クラウド） | 有償（Azure外は月額最大$5/台） |
+| **Windows Update for Business** | クライアントPC（最低限の管理） | Pro以上のWindowsライセンスで利用可（無償） |
+
+---
+
+## NW帯域の観点
+
+### WSUSの仕組み
+
+WSUSは社内にサーバーを設置し、Microsoft Updateから更新プログラムを1回だけダウンロードして社内配布する構造だった。各端末が個別にインターネットへアクセスする必要がなく、帯域節約と集中管理を両立できていた。
+
+<WsusDiagram />
+
+### Intune移行後：配信の最適化（Delivery Optimization）
+
+Intuneベースの管理では、各端末がインターネット上のWindows Updateに直接アクセスする構造に変わる。帯域対策として用意されているのが「**配信の最適化（Delivery Optimization）**」だ。
+
+ダウンロードした更新プログラムをローカルにキャッシュして端末同士でP2P共有することにより、インターネットからのダウンロード量を節約できる。Windows Update以外にMicrosoft 365 AppsやMicrosoft Storeの更新にも使用できる。
+
+### Microsoft Connected Cache for Enterprise
+
+さらにオンプレミスにキャッシュ専用サーバーを設置する「**Microsoft Connected Cache for Enterprise**」も用意されている。帯域節約効果は90%以上に達するとされている。ただし後述するが、このサーバー自体もインターネット接続が必要であり、完全な閉域環境では利用できない。
+
+> **注意**: Intuneベースの管理はWSUSと異なり「各端末がインターネットに直接アクセスする」構造だ。配信の最適化で軽減はできるが、インターネット回線への依存度は高くなる。大規模環境や帯域が限られる拠点では設計段階での検討が必要だ。
+
+---
+
+## 配信時期の調整
+
+### WSUSの場合
+
+KB単位で「承認する・しない」を個別に制御できた。特定のパッチだけ除外する、承認済みのものだけを配布するという細かい制御が可能だった。
+
+### Intune移行後：更新リング＋展開リング
+
+Intuneでは「更新リング」と「展開リング（Windows Autopatch）」を使って配信タイミングを制御する。グループ分けして遅延日数を設定することで段階的に展開できる。
+
+設定できる延期期間の上限は以下のとおりだ。
+
+- 品質更新プログラム（毎月のセキュリティパッチ）：最大30日
+- 機能更新プログラム：最大365日
+
+Test → First → Fast → Broad → Last のような展開リングを組み、グループごとに遅延日数を設定する構成が一般的だ。
+
+> **WSUSとの違い**: WSUSは「承認した更新プログラムだけを配布する」という個別承認モデルだったが、Intuneは「延期日数で配信をずらす」という遅延モデルに変わる。特定のKBだけをピンポイントで止める細かい制御はWSUSほど柔軟にはできない点に注意が必要だ。
+
+---
+
+## 緊急停止・運用保守の観点
+
+### 一時停止（Pause）機能
+
+問題のあるパッチが発生した場合、Intuneでは更新リング単位での**一時停止・再開・ロールバック**が可能だ。最大35日間の一時停止ができる。
+
+ドライバー更新についても個別に一時停止・再開の制御ができる。
+
+### 緊急パッチの扱い
+
+緊急度の高いセキュリティ更新プログラムについては、通常の遅延設定をオーバーライドして即時展開するポリシーが用意されている。
+
+### WSUSとの運用上の違い
+
+| 観点 | WSUS | Intune / Autopatch |
+|---|---|---|
+| 特定KBの停止 | 非承認にするだけで即時対応 | 更新リング単位での一時停止（最大35日） |
+| 無期限の停止 | 可能 | 不可（最大35日） |
+| 緊急パッチの即時展開 | 承認次第で即時配布 | 強制展開ポリシーで対応可 |
+| 管理の主体 | 社内IT管理者 | Autopatch利用時はMicrosoftが一部を管理 |
+
+> **注意**: Autopatchを利用する場合、更新プログラム管理の一部をMicrosoftに委ねる形になる。「組織内で完全にコントロールしたい」というポリシーとは相性が悪い面がある。
+
+---
+
+## 閉域網への対応
+
+### Microsoftの代替手段はすべてインターネット前提
+
+Intune・Azure Update Manager・Microsoft Connected Cacheのいずれも、インターネット接続なしでは機能しない。Microsoft Connected Cacheについても「完全に通信が発生しない状態にはできない」とMicrosoft公式ブログで明記されている。
+
+**WSUSには閉域網対応の公式代替手段が現時点で存在しない。**
+
+### 閉域網で使える現実的な対応案
+
+**① PowerShell + wsusscn2.cab によるオフラインスキャン**
+
+MicrosoftはWUA（Windows Update エージェント）APIを使ったオフラインスキャン用のPowerShellスクリプトとカタログファイル（`wsusscn2.cab`）を提供している。インターネットに接続されていないコンピューターでもセキュリティ更新プログラムをスキャンできる。
+
+運用フローのイメージは以下のとおりだ。
+
+```
+【インターネット側】
+毎月Patch Tuesday翌日にwsusscn2.cabを更新ダウンロード
+必要なKBファイルをMicrosoft Updateカタログからダウンロード
+    ↓（USBメモリ or マルチホームサーバー経由で搬入）
+【閉域網側】
+ファイルサーバーの共有フォルダに配置
+PowerShellスクリプトを実行 → 未適用パッチをCSVで検出
+各サーバー・PCにKBファイルを手動適用
+```
+
+タスクスケジューラと組み合わせることで検出部分の自動化も可能だ。コストはかからないが、人手が必要な部分が残る。
+
+**② マルチホームサーバー構成**
+
+インターネット側と閉域網の両方のサブネットに接続したマルチホームサーバーを橋渡しとして使う方法だ。「完全な閉域」ではなく「管理された経路だけインターネットに繋ぐ」構成として選択される場合がある。
+
+**③ WSUSの延命（現実的な暫定策）**
+
+閉域網環境であれば、2034〜2035年を見据えながら当面はWSUSを継続利用するのが現実的な選択肢の一つだ。ただし「Windows Updateの仕様変更があった場合にWSUSが追随しない」リスクは常に抱えることになる。
+
+**④ サードパーティのIT資産管理ツール（オンプレミス型）**
+
+クラウド型ではなくオンプレミス設置型のIT資産管理ツールを選ぶことで、閉域網内でのパッチ管理を継続する方法もある。ベンダーによっては閉域網対応を明示しているものもある。
+
+---
+
+## コスト構造の変化と企業への影響
+
+WSUSが20年にわたって広く普及した理由のひとつは、**Windows Serverライセンスに含まれており実質無料で利用できた**点にある。
+
+今回の非推奨化でその前提が崩れ、Microsoftが推奨する代替手段はすべて有償ライセンスを必要とする構造になる。
+
+| 手段 | 費用 |
+|---|---|
+| WSUS | 無償（Windows Serverライセンスに含む） |
+| Windows Update for Business | 無償（Pro以上で利用可。ただし管理機能は最低限） |
+| Microsoft Intune 単体 | 月額約1,200円/ユーザー（税別） |
+| Microsoft 365 E3（Intune含む） | 月額約3,600円/ユーザー（税別） |
+| Azure Update Manager（Azure外サーバー） | 月額最大$5/台 |
+
+この構造変化が特に影響するのは以下のケースだ。
+
+**小規模・中小企業**: Microsoft 365 E3を全社員分契約するコストは小規模組織には重い。「セキュリティリスクがあるから管理しろ、でも管理するには有償ライセンスが必要」という状況になる。
+
+**閉域網・インフラ系サーバー**: クラウド管理ツールがそもそも使えないため、有償移行しても解決しない。
+
+**官公庁・規制業界**: インターネット接続前提のツールが使えない環境が多く、代替手段の選択肢が実質的に限られる。
+
+この点はMicrosoftへの批判として業界内でも広く出ており、IT系メディアでも「異論反論が噴出している」と報じられている。
+
+現時点でMicrosoftは無償の代替手段を用意するとは明言しておらず、「WSUSから移行するにはコストを払え」という方向性が続いている。
+
+> **現実的な企業の動き**: 今すぐWSUSをやめる企業は少なく、「2034年まで使い続けながら様子を見る」という判断をしている組織が多い。Windows Updateの仕様変更にWSUSが追随しなくなったタイミングで初めて本格的な移行を迫られる、という流れになるとみられている。
+
+---
+
+## まとめ
+
+| 観点 | WSUSでの対応 | Intune/Autopatch移行後 |
+|---|---|---|
+| NW帯域 | 社内サーバーで一括取得・配布 | 配信の最適化・Connected Cacheで軽減。各端末はインターネットに直接アクセスする構造 |
+| 配信時期の調整 | KB単位で個別承認・非承認 | 更新リング＋延期日数で調整。KB単位の制御はWSUSより劣る |
+| 緊急停止 | 非承認にするだけで即停止 | 最大35日の一時停止が可能。無期限停止はできない |
+| 閉域網 | 対応可（多段WSUS構成等） | 公式代替なし。PowerShell自作運用・WSU延命・サードパーティが現実的 |
+| コスト | 無償 | 有償ライセンスが必要（Intune・Azure Update Manager等） |
+
+---
+
+## 参考リンク
+
+- [Windows Server Update Services (WSUS) deprecation | Windows IT Pro Blog（Microsoft）](https://techcommunity.microsoft.com/blog/windows-itpro-blog/windows-server-update-services-wsus-deprecation/4221230)
+- [WUA を使用したオフライン更新プログラムのスキャン | Microsoft Learn](https://learn.microsoft.com/ja-jp/windows/win32/wua_sdk/using-wua-to-scan-for-updates-offline)
+- [Microsoft Connected Cache の展開時における注意点とベストプラクティス | Microsoft Japan Windows Technology Support Blog](https://jpwinsup.github.io/blog/2025/12/28/MicrosoftConnectedCache/microsoft-connected-cache-best-practices/)
+- [どうする！？残る閉域網の更新管理（1）| セイテクエンジニアのブログ](https://www.say-tech.co.jp/contents/blog/yamanxworld/2025vol126)
+- [Windows Autopatch FAQ | Microsoft Learn](https://learn.microsoft.com/ja-jp/windows/deployment/windows-autopatch/overview/windows-autopatch-faq)
+- [【2025年度版】WSUS廃止・非推奨化の背景と移行先まとめ | SCSK Minoriソリューションズ](https://www.scskminori.co.jp/column/9484/)
+- [WSUSがいよいよ終了 クラウドツールへの移行に異論反論 | ASCII.jp](https://ascii.jp/elem/000/004/223/4223212/)

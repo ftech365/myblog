@@ -1,0 +1,406 @@
+---
+// WsusDiagram.astro
+// タブ切り替え式ネットワーク図
+// 図1: WSUS現行（プライマリ／セカンダリWSUS＋拠点複数）
+// 図2: Intune移行後（各端末がインターネット直接アクセス）
+---
+
+<div class="wsus-diagram-wrapper">
+
+  <div class="diagram-tabs">
+    <button class="tab-btn active" data-tab="wsus">🏢 現行：WSUS構成</button>
+    <button class="tab-btn" data-tab="intune">☁️ 移行後：Intune構成</button>
+  </div>
+
+  <!-- ========== 図1: WSUS現行 ========== -->
+  <div class="diagram-panel active" id="tab-wsus">
+    <div class="diagram-badge good">✅ インターネット通信は最小限（本社1回のみ）</div>
+
+    <svg class="net-svg" viewBox="0 0 640 460" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr-inet" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#2563eb"/>
+        </marker>
+        <marker id="arr-lan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#16a34a"/>
+        </marker>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000018"/>
+        </filter>
+      </defs>
+
+      <!-- クラウド: Microsoft Update -->
+      <rect x="170" y="16" width="300" height="64" rx="12" fill="#dbeafe" stroke="#93c5fd" stroke-width="2" filter="url(#shadow)"/>
+      <text x="320" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">☁️ Microsoft Update</text>
+      <text x="320" y="60" text-anchor="middle" font-size="11" fill="#6b7280">更新プログラム配信元</text>
+
+      <!-- インターネット→プライマリWSUS 矢印 -->
+      <line x1="270" y1="80" x2="150" y2="172" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#arr-inet)"/>
+      <rect x="155" y="108" width="110" height="20" rx="4" fill="#eff6ff"/>
+      <text x="210" y="121" text-anchor="middle" font-size="10" font-weight="600" fill="#2563eb">インターネット（1回のみ）</text>
+
+      <!-- 本社エリア -->
+      <rect x="20" y="148" width="360" height="270" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)"/>
+      <rect x="20" y="148" width="360" height="28" rx="10" fill="#1e293b"/>
+      <rect x="20" y="163" width="360" height="13" fill="#1e293b"/>
+      <text x="200" y="168" text-anchor="middle" font-size="12" font-weight="700" fill="white">🏢 本社</text>
+
+      <!-- プライマリWSUSサーバー -->
+      <rect x="44" y="192" width="140" height="76" rx="8" fill="#f0fdf4" stroke="#4ade80" stroke-width="2" filter="url(#shadow)"/>
+      <text x="114" y="216" text-anchor="middle" font-size="20">🖥️</text>
+      <text x="114" y="236" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">プライマリWSUS</text>
+      <text x="114" y="252" text-anchor="middle" font-size="10" fill="#6b7280">MicrosoftUpdateと同期</text>
+
+      <!-- セカンダリWSUSサーバー -->
+      <rect x="210" y="192" width="140" height="76" rx="8" fill="#fefce8" stroke="#fbbf24" stroke-width="2" filter="url(#shadow)"/>
+      <text x="280" y="216" text-anchor="middle" font-size="20">🖥️</text>
+      <text x="280" y="236" text-anchor="middle" font-size="11" font-weight="700" fill="#854d0e">セカンダリWSUS</text>
+      <text x="280" y="252" text-anchor="middle" font-size="10" fill="#6b7280">配信専用・承認不要</text>
+
+      <!-- プライマリ→セカンダリ 矢印 -->
+      <line x1="186" y1="230" x2="208" y2="230" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arr-lan)"/>
+
+      <!-- セカンダリ→本社PC 矢印 -->
+      <line x1="280" y1="270" x2="240" y2="304" stroke="#16a34a" stroke-width="1.8" marker-end="url(#arr-lan)"/>
+
+      <!-- プライマリ→本社PC 矢印 -->
+      <line x1="114" y1="270" x2="130" y2="304" stroke="#16a34a" stroke-width="1.8" marker-end="url(#arr-lan)"/>
+
+      <!-- 本社PCクラスタ -->
+      <text x="70"  y="330" text-anchor="middle" font-size="22">💻</text>
+      <text x="130" y="330" text-anchor="middle" font-size="22">💻</text>
+      <text x="190" y="330" text-anchor="middle" font-size="22">💻</text>
+      <text x="250" y="330" text-anchor="middle" font-size="22">💻</text>
+      <text x="310" y="330" text-anchor="middle" font-size="22">💻</text>
+      <text x="200" y="350" text-anchor="middle" font-size="10" fill="#64748b">クライアントPC群（LAN内配布）</text>
+
+      <!-- 拠点A -->
+      <rect x="440" y="148" width="180" height="210" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)"/>
+      <rect x="440" y="148" width="180" height="28" rx="10" fill="#374151"/>
+      <rect x="440" y="163" width="180" height="13" fill="#374151"/>
+      <text x="530" y="168" text-anchor="middle" font-size="12" font-weight="700" fill="white">🏬 拠点A</text>
+
+      <rect x="465" y="192" width="130" height="60" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="530" y="212" text-anchor="middle" font-size="18">🖥️</text>
+      <text x="530" y="230" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">拠点Aの WSUS</text>
+      <text x="530" y="244" text-anchor="middle" font-size="9" fill="#6b7280">ダウンストリーム</text>
+
+      <line x1="500" y1="254" x2="500" y2="278" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arr-lan)"/>
+      <line x1="560" y1="254" x2="560" y2="278" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arr-lan)"/>
+      <text x="500" y="302" text-anchor="middle" font-size="20">💻</text>
+      <text x="560" y="302" text-anchor="middle" font-size="20">💻</text>
+      <text x="530" y="322" text-anchor="middle" font-size="9" fill="#64748b">LAN内配布</text>
+
+      <!-- プライマリWSUS → 拠点A WSUS（WAN同期） -->
+      <path d="M 382 225 Q 415 175 463 222" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arr-lan)"/>
+      <text x="422" y="181" text-anchor="middle" font-size="9" fill="#16a34a" font-weight="600">WAN同期</text>
+
+      <!-- 凡例 -->
+      <rect x="20" y="430" width="600" height="22" rx="6" fill="#f1f5f9"/>
+      <line x1="36" y1="441" x2="76" y2="441" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#arr-inet)"/>
+      <text x="86" y="445" font-size="10" fill="#334155">インターネット通信（1回のみ）</text>
+      <line x1="310" y1="441" x2="350" y2="441" stroke="#16a34a" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arr-lan)"/>
+      <text x="360" y="445" font-size="10" fill="#334155">WAN / LAN内部通信（帯域節約）</text>
+    </svg>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>プライマリWSUS</strong>が Microsoft Update から1回だけDL。インターネット通信はここだけ。</div>
+      </div>
+      <div class="flow-arrow">▼</div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>セカンダリWSUS</strong>（本社内・配信専用）へ同期。管理者が承認した更新のみを本社PC群へ配布。</div>
+      </div>
+      <div class="flow-arrow">▼</div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-text">拠点WSUSへ<strong>WAN経由で同期</strong>し、各拠点PCへLAN内配布。各PCはインターネットに出ない。</div>
+      </div>
+    </div>
+
+    <div class="diagram-note good-note">
+      💡 WSUSの強み：インターネット出口は1台（プライマリWSUS）に集約。拠点数・PC台数が増えるほどインターネット帯域節約効果が大きい。
+    </div>
+  </div>
+
+  <!-- ========== 図2: Intune移行後 ========== -->
+  <div class="diagram-panel" id="tab-intune">
+    <div class="diagram-badge warn">⚠️ 各端末がインターネットに直接アクセス</div>
+
+    <svg class="net-svg" viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#dc2626"/>
+        </marker>
+        <marker id="arr-p2p" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#7c3aed"/>
+        </marker>
+        <marker id="arr-policy" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#0891b2"/>
+        </marker>
+        <filter id="shadow2" x="-10%" y="-10%" width="120%" height="130%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000018"/>
+        </filter>
+      </defs>
+
+      <!-- ===== Microsoftクラウド（上部中央） ===== -->
+      <rect x="230" y="12" width="300" height="68" rx="12" fill="#e0e7ff" stroke="#a5b4fc" stroke-width="2" filter="url(#shadow2)"/>
+      <text x="380" y="36" text-anchor="middle" font-size="13" font-weight="700" fill="#3730a3">☁️ Microsoft クラウド</text>
+      <text x="280" y="56" text-anchor="middle" font-size="10" fill="#6b7280">Windows Update</text>
+      <text x="380" y="56" text-anchor="middle" font-size="10" fill="#6b7280">Intune</text>
+      <text x="480" y="56" text-anchor="middle" font-size="10" fill="#6b7280">Microsoft 365</text>
+
+      <!-- ===== 赤矢印: 各エリア代表点 → クラウド（エリアごとに1本ずつ） ===== -->
+      <!-- 本社（左端 x=130）→ クラウド左寄り -->
+      <line x1="130" y1="148" x2="265" y2="80" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-red)"/>
+      <!-- 拠点A（中央 x=380）→ クラウド中央 -->
+      <line x1="380" y1="148" x2="390" y2="80" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-red)"/>
+      <!-- テレワーク（右端 x=630）→ クラウド右寄り -->
+      <line x1="630" y1="148" x2="495" y2="80" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-red)"/>
+
+      <!-- ===== Intuneポリシー: クラウド底辺中心から直角折れ線で各エリアへ ===== -->
+      <!-- 幹線はy=110を横断（赤矢印と交差しないよう少し下にオフセット） -->
+      <!-- 本社へ: クラウド中央下(380,80) → y=110まで下降 → x=120まで左進 → エリア上辺(120,148) -->
+      <polyline points="380,80 380,110 120,110 120,148" fill="none" stroke="#0891b2" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-policy)"/>
+      <!-- 拠点Aへ: クラウド中央下(380,80) → y=110 → x=370 → エリア上辺(370,148) (赤矢印x=390とずらす) -->
+      <polyline points="380,80 380,110 370,110 370,148" fill="none" stroke="#0891b2" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-policy)"/>
+      <!-- テレワークへ: クラウド中央下(380,80) → y=110まで下降 → x=640まで右進 → エリア上辺(640,148) -->
+      <polyline points="380,80 380,110 640,110 640,148" fill="none" stroke="#0891b2" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-policy)"/>
+
+      <!-- ===== 本社 ===== -->
+      <rect x="20" y="148" width="220" height="195" rx="10" fill="#f8fafc" stroke="#c7d2fe" stroke-width="2" filter="url(#shadow2)"/>
+      <rect x="20" y="148" width="220" height="28" rx="10" fill="#1e293b"/>
+      <rect x="20" y="163" width="220" height="13" fill="#1e293b"/>
+      <text x="130" y="168" text-anchor="middle" font-size="12" font-weight="700" fill="white">🏢 本社</text>
+
+      <text x="55"  y="218" text-anchor="middle" font-size="22">💻</text>
+      <text x="100" y="218" text-anchor="middle" font-size="22">💻</text>
+      <text x="145" y="218" text-anchor="middle" font-size="22">💻</text>
+      <text x="190" y="218" text-anchor="middle" font-size="22">💻</text>
+
+      <!-- P2P矢印（本社） -->
+      <line x1="68"  y1="207" x2="88"  y2="207" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr-p2p)"/>
+      <line x1="113" y1="207" x2="133" y2="207" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr-p2p)"/>
+      <line x1="158" y1="207" x2="178" y2="207" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr-p2p)"/>
+
+      <rect x="35" y="228" width="190" height="16" rx="4" fill="#f3e8ff"/>
+      <text x="130" y="239" text-anchor="middle" font-size="9" fill="#6d28d9" font-weight="600">配信の最適化（P2P共有）で帯域軽減</text>
+
+      <!-- ===== 拠点A ===== -->
+      <rect x="270" y="148" width="220" height="195" rx="10" fill="#f8fafc" stroke="#c7d2fe" stroke-width="2" filter="url(#shadow2)"/>
+      <rect x="270" y="148" width="220" height="28" rx="10" fill="#374151"/>
+      <rect x="270" y="163" width="220" height="13" fill="#374151"/>
+      <text x="380" y="168" text-anchor="middle" font-size="12" font-weight="700" fill="white">🏬 拠点A</text>
+
+      <text x="305" y="218" text-anchor="middle" font-size="22">💻</text>
+      <text x="350" y="218" text-anchor="middle" font-size="22">💻</text>
+      <text x="395" y="218" text-anchor="middle" font-size="22">💻</text>
+      <text x="440" y="218" text-anchor="middle" font-size="22">💻</text>
+
+      <!-- P2P矢印（拠点A） -->
+      <line x1="318" y1="207" x2="338" y2="207" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr-p2p)"/>
+      <line x1="363" y1="207" x2="383" y2="207" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr-p2p)"/>
+      <line x1="408" y1="207" x2="428" y2="207" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr-p2p)"/>
+
+      <rect x="285" y="228" width="190" height="16" rx="4" fill="#f3e8ff"/>
+      <text x="380" y="239" text-anchor="middle" font-size="9" fill="#6d28d9" font-weight="600">P2P共有で帯域軽減可</text>
+
+      <!-- ===== テレワーク ===== -->
+      <rect x="520" y="148" width="220" height="195" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="2" filter="url(#shadow2)"/>
+      <rect x="520" y="148" width="220" height="28" rx="10" fill="#166534"/>
+      <rect x="520" y="163" width="220" height="13" fill="#166534"/>
+      <text x="630" y="168" text-anchor="middle" font-size="12" font-weight="700" fill="white">🏠 テレワーク</text>
+
+      <text x="565" y="218" text-anchor="middle" font-size="22">💻</text>
+      <text x="630" y="218" text-anchor="middle" font-size="22">💻</text>
+      <text x="695" y="218" text-anchor="middle" font-size="22">💻</text>
+
+      <rect x="535" y="228" width="190" height="16" rx="4" fill="#dcfce7"/>
+      <text x="630" y="239" text-anchor="middle" font-size="9" fill="#166534" font-weight="600">社外どこからでも管理可能 ✅</text>
+
+      <!-- ===== 凡例 ===== -->
+      <rect x="20" y="358" width="720" height="24" rx="6" fill="#f1f5f9"/>
+      <line x1="36"  y1="370" x2="66"  y2="370" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-red)"/>
+      <text x="74"  y="374" font-size="10" fill="#334155">各端末のインターネット直接通信</text>
+      <line x1="280" y1="370" x2="310" y2="370" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr-p2p)"/>
+      <text x="318" y="374" font-size="10" fill="#334155">P2P共有（配信の最適化）</text>
+      <line x1="490" y1="370" x2="520" y2="370" stroke="#0891b2" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-policy)"/>
+      <text x="528" y="374" font-size="10" fill="#334155">Intuneポリシー（全エリアへ）</text>
+    </svg>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num intune">1</div>
+        <div class="step-text">各PCがIntuneからポリシーを受け取る（Azure AD / Entra ID経由）</div>
+      </div>
+      <div class="flow-arrow">▼</div>
+      <div class="flow-step">
+        <div class="step-num intune">2</div>
+        <div class="step-text">各PCが<strong>個別に</strong>Windows Updateへ接続してDL。拠点・テレワーク問わず全端末がインターネットへ直接アクセス。</div>
+      </div>
+      <div class="flow-arrow">▼</div>
+      <div class="flow-step good-step">
+        <div class="step-num good">✓</div>
+        <div class="step-text"><strong>配信の最適化（P2P）</strong>で同一LAN内のPCがキャッシュを共有し帯域を節約。Microsoft Connected Cacheサーバーを追加すれば節約効果はさらに向上。</div>
+      </div>
+    </div>
+
+    <div class="diagram-note warn-note">
+      ⚠️ Intuneの課題：「1台まとめてDL→社内配布」の構造ではなくなるため、WSUSに比べてインターネット回線への依存度は高い。大規模環境や帯域が限られる拠点では回線設計の見直しが必要。
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .wsus-diagram-wrapper {
+    font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 2rem 0;
+  }
+
+  .diagram-tabs {
+    display: flex;
+    background: #1e293b;
+    gap: 2px;
+    padding: 8px 8px 0;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: #334155;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: #f8fafc;
+    color: #1e293b;
+  }
+
+  .tab-btn:hover:not(.active) {
+    background: #475569;
+    color: #e2e8f0;
+  }
+
+  .diagram-panel {
+    display: none;
+    padding: 16px 20px 20px;
+  }
+
+  .diagram-panel.active {
+    display: block;
+  }
+
+  .net-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .diagram-badge {
+    display: inline-block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .diagram-badge.good { background: #dcfce7; color: #166534; }
+  .diagram-badge.warn { background: #fef9c3; color: #854d0e; }
+
+  .flow-steps {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 6px 0;
+  }
+
+  .flow-step.good-step {
+    background: #f0fdf4;
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+
+  .step-num {
+    width: 26px;
+    height: 26px;
+    background: #1e293b;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .step-num.intune { background: #4f46e5; }
+  .step-num.good   { background: #16a34a; }
+
+  .step-text {
+    font-size: 0.84rem;
+    color: #334155;
+    line-height: 1.6;
+    padding-top: 3px;
+  }
+
+  .flow-arrow {
+    text-align: center;
+    color: #94a3b8;
+    margin: 2px 0;
+  }
+
+  .diagram-note {
+    font-size: 0.82rem;
+    line-height: 1.7;
+    padding: 12px 16px;
+    border-radius: 8px;
+  }
+
+  .diagram-note.good-note {
+    background: #f0fdf4;
+    border-left: 4px solid #4ade80;
+    color: #166534;
+  }
+
+  .diagram-note.warn-note {
+    background: #fefce8;
+    border-left: 4px solid #facc15;
+    color: #854d0e;
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${target}`).classList.add('active');
+    });
+  });
+</script>
