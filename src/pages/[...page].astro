@@ -5,20 +5,24 @@ import PostCard from '../components/PostCard.astro';
 import TagBadge from '../components/TagBadge.astro';
 
 export async function getStaticPaths() {
-  const PAGE1_SIZE = 7;  // 1ページ目: Featured 1 + グリッド 6
+  const PAGE1_GRID = 6;  // 1ページ目グリッド（Featured除く）
   const PAGE_SIZE  = 9;  // 2ページ目以降: グリッド 9
 
   const allPosts = await getCollection('posts', ({ data }) => !data.draft);
-  const posts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+  const sorted = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-  const remaining = posts.slice(PAGE1_SIZE);
+  // featured: true の記事を優先、なければ最新記事
+  const featuredPost = sorted.find(p => p.data.featured) ?? sorted[0];
+  const restPosts = sorted.filter(p => p.id !== featuredPost.id);
+
+  const remaining = restPosts.slice(PAGE1_GRID);
   const extraPages = Math.ceil(remaining.length / PAGE_SIZE);
   const totalPages = 1 + extraPages;
 
   const paths = [
     {
       params: { page: undefined },
-      props: { posts: posts.slice(0, PAGE1_SIZE), currentPage: 1, totalPages },
+      props: { posts: restPosts.slice(0, PAGE1_GRID), featuredPost, currentPage: 1, totalPages },
     },
   ];
 
@@ -27,6 +31,7 @@ export async function getStaticPaths() {
       params: { page: String(i + 2) },
       props: {
         posts: remaining.slice(i * PAGE_SIZE, (i + 1) * PAGE_SIZE),
+        featuredPost: null,
         currentPage: i + 2,
         totalPages,
       },
@@ -36,10 +41,9 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { posts: pagePosts, currentPage, totalPages } = Astro.props;
+const { posts: pagePosts, featuredPost, currentPage, totalPages } = Astro.props;
 const isFirstPage = currentPage === 1;
-const featuredPost = isFirstPage ? pagePosts[0] : null;
-const gridPosts = isFirstPage ? pagePosts.slice(1) : pagePosts;
+const gridPosts = pagePosts;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
