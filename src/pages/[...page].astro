@@ -4,10 +4,54 @@ import Base from '../layouts/Base.astro';
 import PostCard from '../components/PostCard.astro';
 import TagBadge from '../components/TagBadge.astro';
 
-const allPosts = await getCollection('posts', ({ data }) => !data.draft);
-const posts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-const featuredPost = posts.find(p => p.data.featured) ?? posts[0];
-const recentPosts = posts.filter(p => p.id !== featuredPost?.id).slice(0, 6);
+export async function getStaticPaths() {
+  const PAGE1_SIZE = 7;  // 1ページ目: Featured 1 + グリッド 6
+  const PAGE_SIZE  = 9;  // 2ページ目以降: グリッド 9
+
+  const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+  const posts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+  const remaining = posts.slice(PAGE1_SIZE);
+  const extraPages = Math.ceil(remaining.length / PAGE_SIZE);
+  const totalPages = 1 + extraPages;
+
+  const paths = [
+    {
+      params: { page: undefined },
+      props: { posts: posts.slice(0, PAGE1_SIZE), currentPage: 1, totalPages },
+    },
+  ];
+
+  for (let i = 0; i < extraPages; i++) {
+    paths.push({
+      params: { page: String(i + 2) },
+      props: {
+        posts: remaining.slice(i * PAGE_SIZE, (i + 1) * PAGE_SIZE),
+        currentPage: i + 2,
+        totalPages,
+      },
+    });
+  }
+
+  return paths;
+}
+
+const { posts: pagePosts, currentPage, totalPages } = Astro.props;
+const isFirstPage = currentPage === 1;
+const featuredPost = isFirstPage ? pagePosts[0] : null;
+const gridPosts = isFirstPage ? pagePosts.slice(1) : pagePosts;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+function pageUrl(n: number) {
+  return n === 1 ? `${base}/` : `${base}/${n}`;
+}
+
+// ページ番号リスト（最大5つ表示）
+const pageNums: number[] = [];
+const start = Math.max(1, currentPage - 2);
+const end = Math.min(totalPages, start + 4);
+for (let i = start; i <= end; i++) pageNums.push(i);
 ---
 
 <Base title="FTechNotes" description="興味のままに気のままに、調べたことを・実践したことをまとめていくブログ">
@@ -18,11 +62,11 @@ const recentPosts = posts.filter(p => p.id !== featuredPost?.id).slice(0, 6);
     <p>興味のままに気のままに、<br />調べたことを・実践したことをまとめていくブログ</p>
   </section>
 
-  <!-- Featured Post -->
+  <!-- Featured Post (1ページ目のみ) -->
   {featuredPost && (
     <section class="featured-section">
       <div class="section-label">FEATURED</div>
-      <a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/posts/${featuredPost.id}`} class="featured-card">
+      <a href={`${base}/posts/${featuredPost.id}`} class="featured-card">
         <div class="featured-content">
           <div class="post-meta">
             {featuredPost.data.category && <TagBadge tag={featuredPost.data.category} />}
@@ -48,12 +92,14 @@ const recentPosts = posts.filter(p => p.id !== featuredPost?.id).slice(0, 6);
     </section>
   )}
 
-  <!-- Recent Posts Grid -->
-  {recentPosts.length > 0 && (
+  <!-- Posts Grid -->
+  {gridPosts.length > 0 && (
     <section class="posts-section">
-      <div class="section-label">RECENT POSTS</div>
+      <div class="section-label">
+        {isFirstPage ? 'RECENT POSTS' : `PAGE ${currentPage}`}
+      </div>
       <div class="posts-grid">
-        {recentPosts.map((post, i) => (
+        {gridPosts.map((post, i) => (
           <PostCard
             title={post.data.title}
             description={post.data.description}
@@ -67,10 +113,55 @@ const recentPosts = posts.filter(p => p.id !== featuredPost?.id).slice(0, 6);
     </section>
   )}
 
-  {posts.length === 0 && (
+  {pagePosts.length === 0 && (
     <div class="empty-state">
       <p>まだ記事がありません。最初の記事を書いてみましょう。</p>
     </div>
+  )}
+
+  <!-- Pagination -->
+  {totalPages > 1 && (
+    <nav class="pagination" aria-label="ページナビゲーション">
+      <a
+        href={currentPage > 1 ? pageUrl(currentPage - 1) : undefined}
+        class={`page-btn prev ${currentPage === 1 ? 'disabled' : ''}`}
+        aria-disabled={currentPage === 1}
+      >
+        ← PREV
+      </a>
+
+      <div class="page-nums">
+        {start > 1 && (
+          <>
+            <a href={pageUrl(1)} class="page-num">1</a>
+            {start > 2 && <span class="page-ellipsis">…</span>}
+          </>
+        )}
+        {pageNums.map(n => (
+          <a
+            href={pageUrl(n)}
+            class={`page-num ${n === currentPage ? 'active' : ''}`}
+            aria-current={n === currentPage ? 'page' : undefined}
+          >
+            {n}
+          </a>
+        ))}
+        {end < totalPages && (
+          <>
+            {end < totalPages - 1 && <span class="page-ellipsis">…</span>}
+            <a href={pageUrl(totalPages)} class="page-num">{totalPages}</a>
+          </>
+        )}
+      </div>
+
+      <a
+        href={currentPage < totalPages ? pageUrl(currentPage + 1) : undefined}
+        class={`page-btn next ${currentPage === totalPages ? 'disabled' : ''}`}
+        aria-disabled={currentPage === totalPages}
+      >
+        NEXT →
+      </a>
+    </nav>
   )}
 </Base>
 
@@ -251,7 +342,7 @@ const recentPosts = posts.filter(p => p.id !== featuredPost?.id).slice(0, 6);
   /* Posts grid */
   .posts-section {
     max-width: 1100px;
-    margin: 0 auto 80px;
+    margin: 0 auto 60px;
     padding: 0 40px;
   }
 
@@ -271,6 +362,75 @@ const recentPosts = posts.filter(p => p.id !== featuredPost?.id).slice(0, 6);
     font-size: 13px;
   }
 
+  /* Pagination */
+  .pagination {
+    max-width: 1100px;
+    margin: 0 auto 80px;
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .page-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .page-btn:hover:not(.disabled) {
+    border-color: var(--accent);
+    background: rgba(0, 229, 255, 0.05);
+  }
+  .page-btn.disabled {
+    color: var(--text-muted);
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  .page-nums {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .page-num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  .page-num:hover {
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .page-num.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0, 229, 255, 0.08);
+  }
+
+  .page-ellipsis {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 0 4px;
+  }
+
   /* Responsive */
   @media (max-width: 1024px) {
     .posts-grid { grid-template-columns: repeat(2, 1fr); }
@@ -280,7 +440,7 @@ const recentPosts = posts.filter(p => p.id !== featuredPost?.id).slice(0, 6);
 
   @media (max-width: 768px) {
     .hero { padding: 60px 20px 40px; }
-    .featured-section, .posts-section { padding: 0 20px; }
+    .featured-section, .posts-section, .pagination { padding: 0 20px; }
     .posts-grid { grid-template-columns: 1fr; }
     .featured-content { padding: 28px; }
   }

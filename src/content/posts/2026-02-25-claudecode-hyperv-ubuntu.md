@@ -5,6 +5,7 @@ pubDate: 2026-02-25
 tags: ["Claude Code", "Hyper-V", "Ubuntu", "Windows11", "環境構築"]
 category: "その他"
 draft: false
+featured: true
 ---
 
 ## はじめに
