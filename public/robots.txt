@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ftech365.github.io/myblog/sitemap-index.xml
