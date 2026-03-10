@@ -1,0 +1,28 @@
+---
+// NutanixArchDiagram.astro
+// 配置先: src/components/NutanixArchDiagram.astro
+// 画像:   src/assets/nutanix-arch-diagram.png
+import diagramImg from '../assets/nutanix-arch-diagram.png';
+---
+
+<figure class="nd-figure">
+  <img src={diagramImg.src} alt="Nutanix クラスタ構成図（3ノード/RF2）" />
+  <figcaption>Nutanix クラスタ構成（3 ノード / RF2）</figcaption>
+</figure>
+
+<style>
+  .nd-figure {
+    margin: 1.5rem 0;
+    text-align: center;
+  }
+  .nd-figure img {
+    width: 100%;
+    max-width: 620px;
+    height: auto;
+  }
+  .nd-figure figcaption {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.4rem;
+  }
+</style>

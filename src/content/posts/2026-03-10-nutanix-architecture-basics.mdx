@@ -1,0 +1,319 @@
+---
+title: "Nutanix の基本構成とコンポーネントを理解する【第1回】"
+description: "Nutanix HCI の概要から Block/Node の物理構成、AOS・CVM・AHV・Prism の各コンポーネントの役割まで図解で解説。本記事は Nutanix ハードウェア（NX シリーズ等）+ AHV 構成を前提としています。"
+pubDate: 2026-03-10
+tags: ["Nutanix", "仮想化", "HCI", "インフラ", "AHV"]
+category: "監視・運用"
+draft: false
+featured: false
+---
+
+import NutanixArchDiagram from '../../components/NutanixArchDiagram.astro';
+import NutanixCvmDiagram from '../../components/NutanixCvmDiagram.astro';
+
+---
+
+<div style="border-left: 4px solid #6366f1; background: #f0f0ff; padding: 0.8rem 1rem; border-radius: 0 6px 6px 0; margin: 1rem 0; font-size: 0.9rem;">
+<strong>📌 本記事のスコープ</strong><br/>
+Nutanix 製ハードウェア（NX シリーズ等）または Nutanix 認定済みハードウェアに <strong>AHV</strong> を導入した構成を前提としています。ESXi との組み合わせや既存 VMware 環境からの移行については別記事で解説します。<br/><br/>
+・第2回：Nutanix + ESXi 構成・vCenter 連携<br/>
+・第3回：既存 VMware 環境からの移行（Nutanix Move）
+</div>
+
+---
+
+## Nutanix とは
+
+---
+
+Nutanix は **HCI（ハイパーコンバージドインフラストラクチャ）** を提供するベンダーです。
+
+従来のデータセンターでは、サーバー・ストレージ・ネットワーク機器がそれぞれ独立した専用装置として存在し、それらを組み合わせて構築する **3 Tier 構成**が一般的でした。Nutanix の HCI はこれらを 1 台のサーバー（Node）に統合し、複数台を束ねてクラスタとして動作させるアーキテクチャです。
+
+ストレージの追加は専用装置を増やすのではなく **Node を追加する**ことで行い、コンピュート・ストレージ・管理機能が同時にスケールアウトします。
+
+2023 年以降、VMware の Broadcom 買収に伴うライセンス料の大幅な値上がりが話題になりました。その移行先候補の一つとして Nutanix が注目されており、AHV（Nutanix 独自のハイパーバイザー）は **無償** で利用できる点が強みの一つです。
+
+---
+
+## 物理構成：Block と Node
+
+---
+
+本記事で扱う構成は **Nutanix 製ハードウェア（NX シリーズ）または Dell XC・HPE DX・Lenovo HX などの Nutanix 認定済みハードウェア**を前提としています。
+
+初期構築は Nutanix 純正のセットアップツール **Foundation** を使って行います。Foundation がハイパーバイザー（AHV）のインストール・CVM のデプロイ・クラスタ構成を一括で完了させます。
+
+| 用語 | 意味 |
+|---|---|
+| **Node** | 1 台の物理サーバー。CPU・メモリ・SSD を搭載 |
+| **Block** | Node を 1〜4 台格納する筐体（ラックマウント型） |
+| **Cluster** | 複数の Node をネットワークで束ねた論理単位 |
+| **Foundation** | Nutanix 純正の初期構築ツール。HV・CVM・クラスタ設定を一括実施 |
+
+**最小構成の目安：**
+
+| RF | 最小ノード数 | 耐障害性 |
+|---|---|---|
+| **RF2** | 3 ノード | 1 ノード障害まで耐えられる。データを 2 コピー保持 |
+| **RF3** | 5 ノード | 2 ノード同時障害まで耐えられる。データを 3 コピー保持 |
+
+**クラスタ要件：** ディスクは **SSD 必須**（HDD のみは不可）。SSD＋HDD のハイブリッド構成またはオールフラッシュ構成が選択できます。ネットワークは 10GbE 推奨です。
+
+---
+
+## ソフトウェアコンポーネント
+
+---
+
+Nutanix の主なソフトウェアコンポーネントは以下の 5 つです。それぞれが連携してクラスタ全体を動作させています。
+
+| コンポーネント | 一言で言うと |
+|---|---|
+| **AOS**（Acropolis Operating System） | Nutanix 全体を動かす基盤 OS |
+| **CVM**（Controller VM） | 各ノードで AOS を動かす管理専用 VM |
+| **DSF**（Distributed Storage Fabric） | 各ノードの SSD を束ねた分散ストレージ層 |
+| **AHV**（Acropolis Hypervisor） | Nutanix 純正のハイパーバイザー（無償） |
+| **Prism** | Web ベースの管理コンソール |
+
+<NutanixArchDiagram />
+
+---
+
+### CVM（Controller VM）
+
+各ノードに 1 台ずつ存在する管理専用の仮想マシンです。Foundation によって各ノードに自動デプロイされます。CPU 2 コア・メモリ 20GB をノードのリソースから専有します。
+
+AHV 構成では CVM はハイパーバイザーの**外側**で動作するため独立性が高く、CVM の再起動中もユーザー VM への影響はありません。
+
+CVM の内部では以下のプロセスが常時稼働しており、それぞれが役割を分担してクラスタを制御しています。各プロセスはクラスタ内の全ノードに分散して動作し、リーダー選出によって可用性を維持します。
+
+<NutanixCvmDiagram />
+
+---
+
+### AOS（Acropolis Operating System）
+
+Nutanix プラットフォームの基盤となるソフトウェアです。各ノードの CVM 上で複数のプロセスとして動作し、ストレージ管理・データ保護・レプリケーションなどを担います。
+
+---
+
+### DSF（Distributed Storage Fabric）
+
+各 Node の物理 SSD を束ねて、クラスタ全体で 1 つのストレージプールとして提供する仕組みです。各 Node の CVM（Stargate プロセス）がストレージ I/O を制御します。RF2 では全データを 2 つの異なるノードに複製して保持します。
+
+---
+
+### AHV（Acropolis Hypervisor）
+
+Linux（KVM ベース）を Nutanix がカスタマイズした独自のハイパーバイザーです。NCI ライセンスに含まれるため追加費用なしで利用できます。ライブマイグレーション・HA・DRS 相当機能（ADS）が標準搭載です。
+
+---
+
+### Prism（管理コンソール）
+
+| 種類 | 対象 | VMware との対比 |
+|---|---|---|
+| **Prism Element** | 単一クラスタの管理・操作 UI | 単一クラスタに対して vCenter Server 相当の機能を提供 |
+| **Prism Central** | 複数クラスタの統合管理 | vCenter Server（マルチクラスタ）に相当 |
+
+---
+
+#### **Prism Element**
+
+CVM 上でサービスとして動作するため、別途デプロイは不要です。**単一クラスタに対して vCenter Server 相当の管理機能**を提供します。
+
+**アクセス方法（VIP とリーダー選出）**
+
+3 ノード構成の場合、クラスタ内の 1 台の CVM が「**Prism Leader**」として選出され、クラスター VIP（仮想 IP）を保持します。他の CVM が HTTP リクエストを受け取った場合は自動的にリーダーへリダイレクトされます。
+
+運用上は**各ノードの個別 IP ではなくクラスター VIP に接続する**ことが推奨です。VIP 経由であれば、リーダーノードがダウンしても他の CVM が VIP を引き継ぐため接続が維持されます。
+
+**Prism Element で操作できる主な機能：**
+
+| カテゴリ | 操作内容 |
+|---|---|
+| **VM 管理** | VM の作成・削除・電源操作（起動・停止・再起動） |
+| **ライブマイグレーション** | ノード間での VM の無停止移行 |
+| **スナップショット** | VM 単位のスナップショット取得・リストア（Overwrite / Clone） |
+| **バックアップ（Protection Domain）** | VM グループのスケジュールスナップショット・最短 1 時間間隔 |
+| **ストレージ管理** | ストレージコンテナの作成・容量確認・ディスク状態監視 |
+| **ネットワーク設定** | VLAN の作成・NIC ボンディング設定 |
+| **ノード・クラスタ管理** | ノードの追加・クラスタ拡張・アラート確認 |
+| **アップデート（LCM）** | AOS・AHV・ファームウェアのアップデート管理 |
+| **ユーザー管理** | ローカルユーザー・ロール設定（RBAC） |
+
+---
+
+#### **Prism Central**
+
+任意のクラスタ上に VM としてデプロイします。Prism Element の機能に加え、**複数クラスタの統合管理**が可能です。Portfolio 2.0 ライセンス（NCI 等）を使用する場合は Prism Central の導入が必須です。デプロイに必要なリソースは最低 6 CPU・メモリ 26GB・ディスク 500GB です。
+
+両者は完全な上位互換関係ではなく、できること・できないことがそれぞれあるため、単一クラスタ運用では Prism Element を主に使い、複数クラスタ統合や高度な管理が必要になった段階で Prism Central を追加するのが一般的な構成です。
+
+---
+
+## クラスタ構成の基本
+
+---
+
+### CPU
+
+各ノードの物理 CPU は AHV・CVM・ユーザー VM が共有します。CVM が **2 コア**を固定で消費するため、ユーザー VM に割り当て可能なコア数は「物理コア数 − 2」が目安です。
+
+Nutanix の設計思想は「ノードを追加してスケールアウトする」であり、既存ノードの CPU を後からアップグレードしていく構成は基本的に想定されていません。スペックの異なるノードを後から追加することは可能です。
+
+---
+
+### メモリ
+
+CVM が **20GB** を固定で消費します。ユーザー VM に割り当て可能なメモリは「物理メモリ − 20GB」が目安です。
+
+同一ノード内で異なる容量の DIMM を混在させることはできません。メモリを増やす場合はノード単位での増設、またはより多くのメモリを搭載したノードの追加で対応します。
+
+---
+
+### ネットワーク
+
+| 項目 | 要件・推奨 |
+|---|---|
+| **帯域** | 10GbE 推奨。1GbE は非推奨（ストレージトラフィックが輻輳する） |
+| **NIC ボンディング** | Active/Backup（標準）または LACP。障害時の自動フェイルオーバーを提供 |
+| **VLAN** | CVM 用・VM 用・管理用で VLAN 分離が推奨 |
+| **クラスター VIP** | Prism Element アクセス用の仮想 IP。設定必須（未設定だと個別 CVM IP でのアクセスが必要） |
+
+---
+
+### ストレージ
+
+**ディスク構成：** SSD 必須（HDD のみ不可）。SSD＋HDD のハイブリッド構成またはオールフラッシュ構成が選択できます。
+
+**RF（Replication Factor）：**
+
+| RF | 最小ノード数 | データコピー数 | 耐障害性 |
+|---|---|---|---|
+| **RF2** | 3 ノード | 2 コピー | 同時 1 ノード障害まで耐えられる |
+| **RF3** | 5 ノード | 3 コピー | 同時 2 ノード障害まで耐えられる |
+
+**実効容量の計算（RF2）：** RF2 ではデータが 2 コピー保持されるため、実効容量は物理容量の約 1/2 になります。さらに 1 ノード障害時のリビルド容量を確保する設計が推奨されており、推奨最大使用容量の計算式は `0.9 × (クラスタ合計容量 - 最大ノード容量)` です。
+
+**VM 使用量 1TB を確保したい場合の必要容量（RF2）：**
+
+| 構成 | 各ノード必要容量の目安 | 備考 |
+|---|---|---|
+| **3 ノード構成** | 約 800GB〜1TB / ノード | 推奨最大使用容量 1.8TB を満たすには各ノード 556GB 以上。CVM 消費・運用余裕を含め 800GB〜1TB 以上が安全 |
+| **4 ノード構成** | 約 450GB〜600GB / ノード | 推奨最大使用容量 2.7TB を満たすには各ノード 370GB 以上。実務上は 450GB〜600GB 以上が安全 |
+
+ノード間のディスク容量が異なっても動作します。ディスクバランシング機能（Curator）が自動でバランス調整します。ただし同一ノード内の SSD はできるだけ同一サイズが望ましく、異なるサイズが混在すると制限が生じる場合があります。
+
+---
+
+### ユーザー管理・権限制御
+
+**Prism Element** でも **Prism Central** でも、それぞれユーザー管理と権限制御が行えます。AD / LDAP / SAML 連携に対応しており、既存のディレクトリサービスと統合できます。
+
+**RBAC（ロールベースアクセス制御）：** 両方で対応していますが、使えるロールの幅が異なります。
+
+| スコープ | ユーザー管理の範囲 | 利用できるロール |
+|---|---|---|
+| **Prism Element** | 自クラスタのみ | user admin・cluster admin・backup admin・参照権限（4 種類固定） |
+| **Prism Central** | 複数クラスタを横断して管理可能 | 上記に加え、カスタムロール・プロジェクト単位の権限設定が可能。IAM で一元管理 |
+
+AOS 6.8 / Prism Central 2024.1 以降は、ローカルユーザーに対しても RBAC を適用できます（それ以前は AD 連携ユーザーのみ）。
+
+---
+
+## Q&A
+
+---
+
+<details>
+<summary>Nutanix のコンポーネントアップデート時のサーバ・VM への影響は？</summary>
+
+コンポーネントごとに影響範囲が異なります。VM 停止は原則不要です。
+
+| コンポーネント | VM 停止 | 物理ノード再起動 | 説明 |
+|---|---|---|---|
+| **AOS（CVM）** | 不要 | 不要 | CVM を 1 台ずつローリング再起動。他の CVM が稼働継続 |
+| **AHV** | 不要 | 必要（1 台ずつ） | VM を事前にライブマイグレーションで退避してから再起動 |
+| **ファームウェア（BIOS/BMC）** | 不要 | 必要（1 台ずつ） | 1 台あたり 20〜90 分程度かかる場合がある |
+
+アップデートはすべて LCM（Life Cycle Manager）から GUI で実施します。インターネット接続があれば GUI のみでダウンロード〜適用まで完結できます。非接続環境ではサポートポータルから手動ダウンロードして LCM にアップロードする方式です（LCM 2.4 以降）。実行前に約 30 項目のプリチェックが自動実行され、問題が検出された場合はアップデートが実行されません。
+
+</details>
+
+<details>
+<summary>スナップショットの仕組みは？取得時間や復元方法は？</summary>
+
+**ポインタの切り替えだけで完了するため、1 台でも数秒〜数十秒で取得できます。**
+
+Nutanix のスナップショットはストレージブロックのポインタを切り替えるだけの仕組みで、データをコピーする処理は発生しません。I/O 負荷や中間ファイルの肥大化といった問題が構造上発生しない点が特徴です。
+
+**取得方法：**
+- **VM 個別のワンタイムスナップショット**：Prism から対象 VM を右クリック → Take Snapshot
+- **Protection Domain**：複数 VM をグループ化してスケジュールバックアップ
+
+**リストア方法：**
+- **Overwrite**：稼働中の VM を指定時点の状態に上書き復元
+- **Clone**：スナップショットから別 VM として起動（元 VM はそのまま稼働継続）
+
+</details>
+
+<details>
+<summary>バックアップは標準機能で対応できる？</summary>
+
+**短期保管は標準機能で対応できます。長期保管・ランサムウェア対策は外部ツールが必要です。**
+
+Protection Domain を使ったスケジュールスナップショット（最短 1 時間間隔）が標準で利用でき、追加ライセンス不要（Starter から利用可）です。NGT を導入することで VSS 連携によるアプリ整合性スナップショットも可能です。
+
+長期保管・筐体障害対応・ランサムウェア対策が必要な場合は外部バックアップソフトへの書き出しが必要です。Veeam・HYCU・Arcserve・Veritas・Acronis・CommVault・Rubrik などが対応しています。
+
+</details>
+
+<details>
+<summary>ライセンスの料金体系は？</summary>
+
+**公式の定価は非公開（案件登録・見積もり制）ですが、体系は公開されています。**
+
+NCI（Nutanix Cloud Infrastructure）ライセンスは基本的に **物理コア数単位**での課金です。例えば 32 コア CPU 搭載のノードを 3 台使うクラスタでは、32 コア × 3 ノード = 96 コア分のライセンスが必要です。エディションは Starter / Pro / Ultimate の 3 種があり、上位ほど高機能・高額です。サブスクリプション型で 1〜5 年契約が選択できます。
+
+小規模向けの **NCI-Edge** は VM 数課金（最大 25VM・5 ノードまで）で、通常のコア数課金より安価に導入できます。
+
+</details>
+
+---
+
+## まとめ
+
+---
+
+| コンポーネント | 役割 | 特記事項 |
+|---|---|---|
+| **Node** | 物理サーバー単体 | CPU・メモリ・SSD を内蔵。SSD 必須 |
+| **Foundation** | 初期構築ツール | HV・CVM・クラスタ設定を一括実施 |
+| **AOS** | 分散ストレージ・データ管理 | CVM 上のプロセスとして動作 |
+| **CVM** | 各ノードの管理専用 VM | ノードごとに 1 台。CPU 2 コア/Mem 20GB を消費 |
+| **DSF** | 分散ストレージ基盤 | 各 Node の SSD を束ねてクラスタ全体で管理 |
+| **AHV** | ハイパーバイザー | Linux/KVM ベース・無償。標準で HA/DRS 機能搭載 |
+| **Prism Element** | 単一クラスタ管理 UI | VMware でいえば ESXi の管理 UI に近い位置づけ |
+| **Prism Central** | 複数クラスタ統合管理 | vCenter Server に相当。別途 VM としてデプロイ |
+
+3 Tier 構成と比べてコンポーネント数が少なく、Foundation による初期構築の自動化・LCM による一元的なアップデート管理・AHV の無償提供が特徴的です。
+
+ESXi との組み合わせや既存 VMware 環境からの移行については次回以降で解説します。
+
+---
+
+## 参考文献
+
+---
+
+- [Nutanix とは｜Nutanix 公式](https://www.nutanix.com/ja/what-we-do)
+- [Nutanix AHV ハイパーバイザーとは｜Nutanix 公式](https://www.nutanix.com/ja/blog/what-is-nutanix-ahv-hypervisor)
+- [NCI データシート｜Nutanix 公式](https://www.nutanix.com/ja/library/datasheets/nci)
+- [Nutanix ライセンスガイド（PDF）｜Nutanix 公式](https://www.nutanix.com/content/dam/nutanix/ja/documents/support/doc-licensing.pdf)
+- [AHV 管理ガイド v6.8｜Nutanix ポータル](https://portal.nutanix.com/page/documents/details?targetId=AHV-Admin-Guide-v6_8:AHV-Admin-Guide-v6_8)
+- [Nutanix AOS アップグレードガイド（PDF）｜Nutanix 公式](https://www.nutanix.com/content/dam/nutanix/ja/documents/support/doc-aos-upgrade.pdf)
+- [Nutanix HCI とは（第1回）｜SB C&S Engineer Voice](https://licensecounter.jp/engineer-voice/blog/articles/20240919_senutanix1hcinutanix.html)
+- [Nutanix ポートフォリオ 2.0 ライセンス解説｜SB C&S Engineer Voice](https://licensecounter.jp/engineer-voice/blog/articles/20220328_nutanixportfolio_20.html)
+- [AOS 6.8 / Prism Central 2024.1 新機能｜SB C&S Engineer Voice](https://licensecounter.jp/engineer-voice/blog/articles/20240801_nutanix_aos_68ests_pc20241.html)

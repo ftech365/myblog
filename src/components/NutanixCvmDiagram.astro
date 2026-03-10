@@ -1,0 +1,98 @@
+---
+// NutanixCvmDiagram.astro
+---
+
+<div class="cvm-wrap">
+  <p class="cvm-title">⚙ CVM（Controller VM）の内部プロセス</p>
+  <p class="cvm-note">各 Node に 1 台。CPU 2 コア / Mem 20GB を専有。ユーザー VM とは独立して動作する管理専用 VM。各プロセスはクラスタ全ノードに分散し、リーダー選出で可用性を維持します。</p>
+
+  <div class="cvm-procs">
+    <div class="cvm-proc">
+      <span class="cvm-name aos">AOS</span>
+      <span class="cvm-desc">Nutanix 基盤ソフトウェア全体。CVM 上の全プロセスを束ねる</span>
+    </div>
+    <div class="cvm-proc">
+      <span class="cvm-name stargate">Stargate</span>
+      <span class="cvm-desc">VM からのストレージ I/O を処理。DSF への入口となるストレージコントローラー</span>
+    </div>
+    <div class="cvm-proc">
+      <span class="cvm-name cassandra">Cassandra</span>
+      <span class="cvm-desc">分散メタデータ管理。データの配置情報・ブロックマッピングを保持</span>
+    </div>
+    <div class="cvm-proc">
+      <span class="cvm-name curator">Curator</span>
+      <span class="cvm-desc">ストレージ最適化・クリーンアップ・ディスクバランシングを管理</span>
+    </div>
+    <div class="cvm-proc">
+      <span class="cvm-name zookeeper">Zookeeper</span>
+      <span class="cvm-desc">クラスタ内ノードの稼働状態管理・設定ストア・リーダー選出を担当</span>
+    </div>
+    <div class="cvm-proc">
+      <span class="cvm-name prism">Prism Element</span>
+      <span class="cvm-desc">単一クラスタ向け Web 管理 UI。クラスター VIP 経由でアクセス</span>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .cvm-wrap {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.8rem;
+    color: #1e293b;
+    margin: 1.2rem 0;
+    border: 1.5px solid #fcd34d;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    background: #fffbeb;
+  }
+  .cvm-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #78350f;
+    margin: 0 0 0.3rem;
+  }
+  .cvm-note {
+    font-size: 0.67rem;
+    color: #92400e;
+    margin: 0 0 0.8rem;
+    line-height: 1.6;
+  }
+
+  .cvm-procs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+  }
+  .cvm-proc {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .cvm-name {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.12rem 0.4rem;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+  }
+  .cvm-desc {
+    font-size: 0.6rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .aos       { background: #fde68a; color: #78350f; }
+  .stargate  { background: #d1fae5; color: #064e3b; }
+  .cassandra { background: #fee2e2; color: #7f1d1d; }
+  .curator   { background: #e0f2fe; color: #0c4a6e; }
+  .zookeeper { background: #f3e8ff; color: #4c1d95; }
+  .prism     { background: #ddd6fe; color: #3730a3; }
+
+
+  @media (max-width: 600px) {
+    .cvm-procs { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
