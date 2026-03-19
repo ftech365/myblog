@@ -12,7 +12,7 @@ const posts = defineCollection({
     tags: z.array(z.string().max(30)).max(10).default([]),
     category: z.enum([
       "AWS", "Linux", "WindowsServer", "SQL Server",
-      "ネットワーク", "セキュリティ", "資格", "監視・運用", "その他"
+      "ネットワーク", "セキュリティ", "資格", "監視・運用", "IT入門", "その他"
     ]).optional(),
     draft: z.boolean().default(false),
     featured: z.boolean().default(false),
