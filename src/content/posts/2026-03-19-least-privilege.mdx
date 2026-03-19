@@ -2,8 +2,8 @@
 title: "最小権限の原則 — 新人エンジニアが最初に押さえるべきセキュリティ設計の基本"
 description: "「必要な鍵だけ渡す」という考え方が、なぜ重要なのか。実際の障害事例と権限管理が破綻した現場からの回復手順を交えて解説する。"
 pubDate: 2026-03-19
-tags: ["セキュリティ", "権限管理", "アクセス制御"]
-category: "IT入門"
+tags: ["セキュリティ", "権限管理", "アクセス制御", "IT入門"]
+category: "セキュリティ"
 draft: false
 featured: false
 ---
@@ -92,8 +92,8 @@ ITセキュリティには **最小権限の原則（Principle of Least Privileg
 
 以下はよくある実例だ。
 
-<div style="border:1px solid var(--sl-color-gray-5,#e5e7eb);border-radius:10px;overflow:hidden;margin:1.2rem 0">
-  <div style="background:var(--sl-color-gray-6,#f9fafb);padding:0.5rem 1rem;font-size:0.75rem;font-weight:600;color:inherit;border-bottom:1px solid var(--sl-color-gray-5,#e5e7eb)">ある社員の権限の変遷</div>
+<div style="border:1px solid rgba(128,128,128,0.3);border-radius:10px;overflow:hidden;margin:1.2rem 0">
+  <div style="background:rgba(128,128,128,0.15);padding:0.5rem 1rem;font-size:0.75rem;font-weight:600;color:inherit;border-bottom:1px solid rgba(128,128,128,0.2)">ある社員の権限の変遷</div>
   {[
     { phase: "入社時",          bar: 18, color: "#86efac", note: "一般ユーザー権限", warn: false },
     { phase: "プロジェクトA参加", bar: 38, color: "#4ade80", note: "DBアクセス追加",  warn: false },
@@ -101,12 +101,12 @@ ITセキュリティには **最小権限の原則（Principle of Least Privileg
     { phase: "プロジェクトA終了", bar: 60, color: "#ef4444", note: "権限はそのまま残存", warn: true },
     { phase: "数年後",           bar: 82, color: "#b91c1c", note: "誰も把握していない権限の山", warn: true },
   ].map(r => (
-    <div key={r.phase} style={{display:"flex",alignItems:"center",gap:"12px",padding:"0.6rem 1rem",borderBottom:"1px solid #f3f4f6"}}>
-      <div style={{width:"130px",flexShrink:0,fontSize:"0.8rem",color:"#374151"}}>{r.phase}</div>
-      <div style={{flex:1,height:"10px",background:"#f3f4f6",borderRadius:"100px",overflow:"hidden"}}>
+    <div key={r.phase} style={{display:"flex",alignItems:"center",gap:"12px",padding:"0.6rem 1rem",borderBottom:"1px solid rgba(128,128,128,0.2)"}}>
+      <div style={{width:"130px",flexShrink:0,fontSize:"0.8rem",color:"inherit",opacity:0.9}}>{r.phase}</div>
+      <div style={{flex:1,height:"10px",background:"rgba(128,128,128,0.2)",borderRadius:"100px",overflow:"hidden"}}>
         <div style={{width:`${r.bar}%`,height:"100%",background:r.color,borderRadius:"100px"}}/>
       </div>
-      <div style={{width:"200px",flexShrink:0,fontSize:"0.78rem",color:r.warn?"#b91c1c":"#6b7280",fontWeight:r.warn?600:400}}>{r.note}</div>
+      <div style={{width:"200px",flexShrink:0,fontSize:"0.78rem",color:r.warn?"#ef4444":"inherit",fontWeight:r.warn?600:400,opacity:r.warn?1:0.85}}>{r.note}</div>
     </div>
   ))}
 </div>
