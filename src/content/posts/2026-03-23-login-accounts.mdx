@@ -481,7 +481,7 @@ SSOには実は2つのパターンがある。どちらも「1回のログイン
 <div style="display:flex;flex-direction:column;gap:10px;margin:1.2rem 0">
   <div style="border:1px solid rgba(234,179,8,0.4);border-radius:10px;padding:0.9rem 1rem;background:rgba(234,179,8,0.06)">
     <div style="font-size:0.78rem;font-weight:600;color:#facc15;margin-bottom:6px">⚠ パスワード変更はシステム停止に直結する</div>
-    <div style="font-size:0.82rem;line-height:1.75;opacity:0.9">サービス・ジョブアカウントのパスワードを変更した場合、そのアカウントで動いているサービスやバッチ処理は<strong>即座に認証エラーで停止する</strong>。パスワード変更の際は、サービスの設定ファイルや認証情報も同時に更新する必要がある。変更前に影響範囲を必ず確認すること。</div>
+    <div style="font-size:0.82rem;line-height:1.75;opacity:0.9">サービス・ジョブアカウントのパスワードを変更した場合、そのアカウントで動いているサービスやバッチ処理は<strong>認証エラーで停止する(キャッシュで一時的に正常な状態が維持されることもある)</strong>。パスワード変更の際は、サービスの設定ファイルや認証情報も同時に更新する必要がある。変更前に影響範囲を必ず確認すること。</div>
   </div>
   <div style="border:1px solid rgba(220,38,38,0.4);border-radius:10px;padding:0.9rem 1rem;background:rgba(220,38,38,0.06)">
     <div style="font-size:0.78rem;font-weight:600;color:#f87171;margin-bottom:6px">🚨 アカウントの削除・無効化はシステム再構築リスクを伴う</div>
