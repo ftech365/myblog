@@ -1,0 +1,541 @@
+---
+title: "ログインアカウントの基礎知識"
+description: "OS・メール・業務システム・ファイルサーバなど、システムごとに異なるアカウントの仕組みを図解で解説する。同じ名前でも別アカウントになる理由、SSOの2パターン、運用保守用アカウントの注意点まで、現場で役立つ基礎を押さえる。"
+pubDate: 2026-03-19
+tags: ["セキュリティ", "アカウント管理", "Active Directory", "IT入門"]
+category: "セキュリティ"
+draft: false
+featured: false
+---
+
+## はじめに
+
+「なんでまたパスワードを聞かれるの？」「同じIDなのになぜ入れない？」——ITの現場ではこうした疑問が日常的に生まれる。
+
+原因のほとんどは、**システムごとにアカウントの管理場所が違う**という一点に集約される。OSのアカウント、メールのアカウント、業務システムのアカウント、ファイルサーバへのアクセス——それぞれ別の仕組みで動いているからだ。
+
+この記事では、各システムのアカウントの違いと連携の仕組みを図解で整理する。さらに、一般ユーザーが普段触れない「運用保守用アカウント」についても、基本的な考え方を押さえておく。
+
+---
+
+## 目次
+
+- [山田さんの入社初日](#山田さんの入社初日)
+- [なぜ何度も聞かれるのか](#なぜ何度も聞かれるのか)
+- [システムごとのアカウントを整理する](#システムごとのアカウントを整理する)
+- [連携があれば1回で済む話](#連携があれば1回で済む話)
+- [システム運用保守用アカウント](#システム運用保守用アカウント)
+- [パスワードを変えると、なぜ複数箇所で再入力を求められるのか](#パスワードを変えるとなぜ複数箇所で再入力を求められるのか)
+- [まとめ](#まとめ)
+- [参考リンク](#参考リンク)
+
+---
+
+## 山田さんの入社初日
+
+<div style="border:1px solid rgba(128,128,128,0.3);border-radius:12px;overflow:hidden;margin:1.5rem 0">
+  <div style="background:rgba(128,128,128,0.12);padding:0.6rem 1.2rem;font-size:0.75rem;font-weight:600;color:inherit;border-bottom:1px solid rgba(128,128,128,0.2)">
+    シナリオ — 山田さん（28歳・前職は営業）の入社初日
+  </div>
+
+  {[
+    { time: "09:00", icon: "💻", event: "PCの電源を入れる", result: "パスワードを求められた", status: "ask" },
+    { time: "09:15", icon: "📧", event: "メールソフトを開く", result: "またパスワードを求められた", status: "ask" },
+    { time: "09:30", icon: "📄", event: "Wordを開く", result: "またまたパスワードを求められた", status: "ask" },
+    { time: "10:00", icon: "🕐", event: "勤怠システムにアクセス", result: "ユーザーIDとパスワードを求められた", status: "ask" },
+    { time: "10:05", icon: "😫", event: "山田さん、ため息をつく", result: "「全部同じパスワードのはずなのに…」", status: "sigh" },
+  ].map(r => (
+    <div key={r.time} style={{display:"flex",alignItems:"flex-start",gap:"14px",padding:"0.75rem 1.2rem",borderBottom:"1px solid rgba(128,128,128,0.15)"}}>
+      <div style={{flexShrink:0,fontSize:"0.75rem",color:"inherit",opacity:0.6,width:"44px",paddingTop:"2px"}}>{r.time}</div>
+      <div style={{fontSize:"1.1rem",flexShrink:0}}>{r.icon}</div>
+      <div style={{flex:1}}>
+        <div style={{fontSize:"0.875rem",fontWeight:500}}>{r.event}</div>
+        <div style={{fontSize:"0.8rem",opacity:0.7,marginTop:"2px",color: r.status==="ask" ? "#f59e0b" : "inherit"}}>{r.result}</div>
+      </div>
+    </div>
+  ))}
+</div>
+
+山田さんの感覚は正しい。全部「yamada」というIDで、全部同じパスワードのはずだ。なのになぜ何度も聞かれるのか。
+
+---
+
+## なぜ何度も聞かれるのか
+
+答えはシンプルだ。
+
+**「yamada」というIDが、システムごとに別々の場所で管理されているから。**
+
+イメージとして考えてほしいのが、**会員カード**だ。
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:1.5rem 0">
+  <div style="background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:1rem">
+    <div style="font-size:0.75rem;font-weight:600;color:#ef4444;margin-bottom:6px">現実の例</div>
+    <div style="font-size:0.875rem;line-height:1.7;color:inherit">コンビニのポイントカードとスーパーのポイントカードは、同じ名前・同じ電話番号で登録していても<strong>別々のカード</strong>だ。どちらかで貯めたポイントは、もう一方では使えない。</div>
+  </div>
+  <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:1rem">
+    <div style="font-size:0.75rem;font-weight:600;color:#60a5fa;margin-bottom:6px">ITシステムの場合</div>
+    <div style="font-size:0.875rem;line-height:1.7;color:inherit">OSのアカウントとメールのアカウントは、同じ「yamada」という名前でも<strong>別々のシステムで管理</strong>されている。連携設定がなければ、それぞれに個別でログインが必要になる。</div>
+  </div>
+</div>
+
+つまり山田さんが何度もパスワードを求められたのは、**4つの異なるシステムに、別々に存在する「yamada」にそれぞれログインしていたから**だ。
+
+<div style="margin:2rem 0;padding:1.2rem;background:rgba(128,128,128,0.08);border-radius:12px;border:1px solid rgba(128,128,128,0.2)">
+  <div style="font-size:0.75rem;font-weight:600;opacity:0.6;margin-bottom:1rem">山田さんが操作したシステムと、それぞれの「yamada」の管理場所</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    {[
+      { system: "💻 会社のPC（OS）", manager: "Active Directory（社内サーバー）", color: "rgba(99,102,241,0.15)", border: "rgba(99,102,241,0.4)", tc: "#818cf8" },
+      { system: "📧 メール", manager: "Microsoft 365（クラウド）", color: "rgba(59,130,246,0.15)", border: "rgba(59,130,246,0.4)", tc: "#60a5fa" },
+      { system: "📄 Office（Word等）", manager: "Microsoft 365（クラウド）", color: "rgba(59,130,246,0.15)", border: "rgba(59,130,246,0.4)", tc: "#60a5fa" },
+      { system: "🕐 勤怠システム", manager: "勤怠ソフト独自のDB", color: "rgba(234,179,8,0.15)", border: "rgba(234,179,8,0.4)", tc: "#facc15" },
+    ].map(r => (
+      <div key={r.system} style={{display:"flex",alignItems:"center",gap:"10px",padding:"0.6rem 1rem",background:r.color,border:`1px solid ${r.border}`,borderRadius:"8px"}}>
+        <div style={{fontSize:"0.875rem",flex:1}}>{r.system}</div>
+        <div style={{fontSize:"0.75rem",opacity:0.7}}>管理場所 →</div>
+        <div style={{fontSize:"0.8rem",fontWeight:600,color:r.tc}}>{r.manager}</div>
+      </div>
+    ))}
+  </div>
+</div>
+
+管理場所が違う = 別アカウント。これが基本原則だ。
+
+---
+
+## システムごとのアカウントを整理する
+
+---
+
+### OSのアカウント — 2種類ある
+
+会社のPCにログインするとき、実は2種類のアカウントがある。
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:1.2rem 0">
+  <div style="border:1px solid rgba(128,128,128,0.3);border-radius:14px;overflow:hidden">
+    <div style="background:rgba(128,128,128,0.12);padding:1rem 1.2rem;border-bottom:1px solid rgba(128,128,128,0.2)">
+      <div style="font-size:1.4rem;margin-bottom:4px">🏠</div>
+      <div style="font-size:0.95rem;font-weight:500">ローカルアカウント</div>
+      <div style="font-size:0.78rem;opacity:0.65;margin-top:2px">そのPC内だけに存在する</div>
+    </div>
+    <div style="padding:1rem 1.2rem">
+      <div style="display:flex;justify-content:center;margin-bottom:1rem">
+        <div style="text-align:center">
+          <div style="font-size:2rem">💻</div>
+          <div style="font-size:0.78rem;margin-top:4px;font-weight:500">自分のPC</div>
+          <div style="display:inline-block;margin-top:4px;background:rgba(128,128,128,0.15);border-radius:100px;padding:2px 10px;font-size:0.72rem">yamada</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px">
+        <div style="border-top:2px dashed rgba(128,128,128,0.35);width:56px;margin-top:12px"></div>
+        <div style="font-size:1.2rem">❌</div>
+        <div style="border-top:2px dashed rgba(128,128,128,0.35);width:56px;margin-top:12px"></div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:20px;margin-bottom:1rem">
+        <div style="text-align:center;opacity:0.4">
+          <div style="font-size:1.6rem">💻</div>
+          <div style="font-size:0.72rem;margin-top:4px">隣のPC</div>
+        </div>
+        <div style="text-align:center;opacity:0.4">
+          <div style="font-size:1.6rem">💻</div>
+          <div style="font-size:0.72rem;margin-top:4px">会議室PC</div>
+        </div>
+      </div>
+      <div style="background:rgba(220,38,38,0.08);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.8rem;line-height:1.6">
+        <div style="color:#f87171;font-weight:500;margin-bottom:2px">✕ 他のPCにはログインできない</div>
+        <div style="opacity:0.7">パスワード変更は各PC個別に必要</div>
+      </div>
+    </div>
+  </div>
+  <div style="border:1px solid rgba(99,102,241,0.4);border-radius:14px;overflow:hidden">
+    <div style="background:rgba(99,102,241,0.12);padding:1rem 1.2rem;border-bottom:1px solid rgba(99,102,241,0.25)">
+      <div style="font-size:1.4rem;margin-bottom:4px">🏢</div>
+      <div style="font-size:0.95rem;font-weight:500">ADアカウント（ドメイン）</div>
+      <div style="font-size:0.78rem;opacity:0.65;margin-top:2px">会社のサーバーで一元管理</div>
+    </div>
+    <div style="padding:1rem 1.2rem">
+      <svg width="100%" viewBox="0 0 220 170" style="display:block;overflow:visible">
+        <text x="110" y="18" text-anchor="middle" font-size="26" dominant-baseline="central">🗄️</text>
+        <text x="110" y="40" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.8" font-weight="500">ADサーバー</text>
+        <text x="110" y="56" text-anchor="middle" font-size="10" fill="#818cf8">yamada を管理</text>
+        <line x1="110" y1="62" x2="36"  y2="92" stroke="rgba(99,102,241,0.5)" stroke-width="1.5"/>
+        <line x1="110" y1="62" x2="110" y2="92" stroke="rgba(99,102,241,0.5)" stroke-width="1.5"/>
+        <line x1="110" y1="62" x2="184" y2="92" stroke="rgba(99,102,241,0.5)" stroke-width="1.5"/>
+        <text x="36"  y="102" text-anchor="middle" font-size="22" dominant-baseline="central">💻</text>
+        <text x="110" y="102" text-anchor="middle" font-size="22" dominant-baseline="central">💻</text>
+        <text x="184" y="102" text-anchor="middle" font-size="22" dominant-baseline="central">💻</text>
+        <text x="36"  y="124" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.75">自分のPC</text>
+        <text x="110" y="124" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.75">隣のPC</text>
+        <text x="184" y="124" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.75">会議室PC</text>
+        <text x="36"  y="142" text-anchor="middle" font-size="13" fill="#4ade80">✓</text>
+        <text x="110" y="142" text-anchor="middle" font-size="13" fill="#4ade80">✓</text>
+        <text x="184" y="142" text-anchor="middle" font-size="13" fill="#4ade80">✓</text>
+      </svg>
+      <div style="background:rgba(34,197,94,0.08);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.8rem;line-height:1.6;margin-top:4px">
+        <div style="color:#4ade80;font-weight:500;margin-bottom:2px">◯ どのPCでも同じID・同じPWでOK</div>
+        <div style="opacity:0.7">パスワード変更はADサーバーの1か所だけ → 全PCに即反映</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+**Active Directory（AD）：** 会社のサーバーで動いている「社員の情報を一括管理するシステム」だ。誰がどのPCにログインできるか、どのファイルにアクセスできるかをここで管理している。表示例は `CORP\yamada` や `yamada@corp.example.com` のような形式だ。
+
+---
+
+### メール・Officeのアカウント
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:1.2rem 0">
+
+  <div style="border:1px solid rgba(99,102,241,0.4);border-radius:14px;overflow:hidden">
+    <div style="background:rgba(99,102,241,0.12);padding:0.8rem 1rem;border-bottom:1px solid rgba(99,102,241,0.2)">
+      <div style="font-size:1.2rem;margin-bottom:4px">🏢</div>
+      <div style="font-size:0.82rem;font-weight:500">オンプレExchange</div>
+      <div style="font-size:0.72rem;opacity:0.6;margin-top:2px">社内サーバー型メール</div>
+    </div>
+    <div style="padding:0.9rem 1rem">
+      <svg width="100%" viewBox="0 0 160 90" style="display:block">
+        <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <text x="28" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">💻</text>
+        <text x="28" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">自分のPC</text>
+        <text x="28" y="60" text-anchor="middle" font-size="8" fill="#818cf8">ADアカウント</text>
+        <line x1="46" y1="28" x2="96" y2="28" stroke="rgba(99,102,241,0.6)" stroke-width="1.5" marker-end="url(#a1)"/>
+        <text x="71" y="20" text-anchor="middle" font-size="8" fill="#4ade80">同じID・PW</text>
+        <text x="128" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">📬</text>
+        <text x="128" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">Exchangeサーバー</text>
+        <text x="128" y="60" text-anchor="middle" font-size="8" fill="#818cf8">AD認証</text>
+      </svg>
+      <div style="background:rgba(34,197,94,0.08);border-radius:8px;padding:0.5rem 0.7rem;font-size:0.76rem;line-height:1.6">
+        <div style="color:#4ade80;font-weight:500">◯ そのまま入れる</div>
+        <div style="opacity:0.7;font-size:0.72rem;margin-top:2px">ADが直接認証。別ログイン不要。</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="border:1px solid rgba(234,179,8,0.4);border-radius:14px;overflow:hidden">
+    <div style="background:rgba(234,179,8,0.1);padding:0.8rem 1rem;border-bottom:1px solid rgba(234,179,8,0.2)">
+      <div style="font-size:1.2rem;margin-bottom:4px">☁️</div>
+      <div style="font-size:0.82rem;font-weight:500">Microsoft 365</div>
+      <div style="font-size:0.72rem;opacity:0.6;margin-top:2px">連携なし</div>
+    </div>
+    <div style="padding:0.9rem 1rem">
+      <svg width="100%" viewBox="0 0 160 90" style="display:block">
+        <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <text x="28" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">💻</text>
+        <text x="28" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">自分のPC</text>
+        <text x="28" y="60" text-anchor="middle" font-size="8" fill="#818cf8">ADアカウント</text>
+        <line x1="46" y1="28" x2="96" y2="28" stroke="rgba(220,38,38,0.5)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#a2)"/>
+        <text x="71" y="20" text-anchor="middle" font-size="8" fill="#f87171">別アカウント</text>
+        <text x="128" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">📧</text>
+        <text x="128" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">Microsoft 365</text>
+        <text x="128" y="60" text-anchor="middle" font-size="8" fill="#facc15">Entra ID認証</text>
+      </svg>
+      <div style="background:rgba(234,179,8,0.08);border-radius:8px;padding:0.5rem 0.7rem;font-size:0.76rem;line-height:1.6">
+        <div style="color:#facc15;font-weight:500">△ 別途サインインが必要</div>
+        <div style="opacity:0.7;font-size:0.72rem;margin-top:2px">ADとは別のクラウドアカウント。パスワードも独立。</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="border:1px solid rgba(34,197,94,0.4);border-radius:14px;overflow:hidden">
+    <div style="background:rgba(34,197,94,0.1);padding:0.8rem 1rem;border-bottom:1px solid rgba(34,197,94,0.2)">
+      <div style="font-size:1.2rem;margin-bottom:4px">🔗</div>
+      <div style="font-size:0.82rem;font-weight:500">Microsoft 365</div>
+      <div style="font-size:0.72rem;opacity:0.6;margin-top:2px">AD同期あり</div>
+    </div>
+    <div style="padding:0.9rem 1rem">
+      <svg width="100%" viewBox="0 0 160 90" style="display:block">
+        <defs><marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <text x="18" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">💻</text>
+        <text x="18" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">自分のPC</text>
+        <line x1="30" y1="28" x2="58" y2="28" stroke="rgba(34,197,94,0.6)" stroke-width="1.5" marker-end="url(#a3)"/>
+        <text x="44" y="20" text-anchor="middle" font-size="8" fill="#4ade80">同じID</text>
+        <text x="80" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">🔄</text>
+        <text x="80" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">同期ツール</text>
+        <line x1="96" y1="28" x2="124" y2="28" stroke="rgba(34,197,94,0.6)" stroke-width="1.5" marker-end="url(#a3)"/>
+        <text x="110" y="20" text-anchor="middle" font-size="8" fill="#4ade80">自動連携</text>
+        <text x="142" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">📧</text>
+        <text x="142" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">M365</text>
+      </svg>
+      <div style="background:rgba(34,197,94,0.08);border-radius:8px;padding:0.5rem 0.7rem;font-size:0.76rem;line-height:1.6">
+        <div style="color:#4ade80;font-weight:500">◯ 同じIDで入れる</div>
+        <div style="opacity:0.7;font-size:0.72rem;margin-top:2px">裏では別アカウント。同期ツールが橋渡し役。</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+**Entra ID（旧Azure AD）とは：** Microsoftが提供するクラウド版の「社員情報管理システム」だ。Microsoft 365のメールやOfficeはここで認証される。社内のADとは別物だが、同期ツールを使うと同じIDで入れるようになる。
+
+---
+
+### 業務システムのアカウント — さらに独自の世界
+
+勤怠システム・経費精算ツール・社内DBなどは、それぞれ独自のアカウントを持つことが多い。
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1.2rem 0">
+
+  <div style="border:1px solid rgba(99,102,241,0.4);border-radius:14px;overflow:hidden">
+    <div style="background:rgba(99,102,241,0.12);padding:0.8rem 1rem;border-bottom:1px solid rgba(99,102,241,0.2)">
+      <div style="font-size:1.2rem;margin-bottom:4px">🔑</div>
+      <div style="font-size:0.82rem;font-weight:500">AD連携型</div>
+      <div style="font-size:0.72rem;opacity:0.6;margin-top:2px">ADアカウントで認証</div>
+    </div>
+    <div style="padding:0.9rem 1rem">
+      <svg width="100%" viewBox="0 0 160 90" style="display:block">
+        <defs><marker id="b1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <text x="28" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">💻</text>
+        <text x="28" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">自分のPC</text>
+        <text x="28" y="60" text-anchor="middle" font-size="8" fill="#818cf8">ADアカウント</text>
+        <line x1="46" y1="28" x2="96" y2="28" stroke="rgba(99,102,241,0.6)" stroke-width="1.5" marker-end="url(#b1)"/>
+        <text x="71" y="20" text-anchor="middle" font-size="8" fill="#4ade80">同じID・PW</text>
+        <text x="128" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">🗂️</text>
+        <text x="128" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">SQL Server等</text>
+        <text x="128" y="60" text-anchor="middle" font-size="8" fill="#818cf8">Windows認証</text>
+      </svg>
+      <div style="background:rgba(34,197,94,0.08);border-radius:8px;padding:0.5rem 0.7rem;font-size:0.76rem;line-height:1.6">
+        <div style="color:#4ade80;font-weight:500">◯ そのまま入れる</div>
+        <div style="opacity:0.7;font-size:0.72rem;margin-top:2px">ADが直接認証。別ログイン不要。</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="border:1px solid rgba(234,179,8,0.4);border-radius:14px;overflow:hidden">
+    <div style="background:rgba(234,179,8,0.1);padding:0.8rem 1rem;border-bottom:1px solid rgba(234,179,8,0.2)">
+      <div style="font-size:1.2rem;margin-bottom:4px">🔒</div>
+      <div style="font-size:0.82rem;font-weight:500">独自アカウント型</div>
+      <div style="font-size:0.72rem;opacity:0.6;margin-top:2px">システム独自のIDで認証</div>
+    </div>
+    <div style="padding:0.9rem 1rem">
+      <svg width="100%" viewBox="0 0 160 90" style="display:block">
+        <defs><marker id="b2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <text x="28" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">💻</text>
+        <text x="28" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">自分のPC</text>
+        <text x="28" y="60" text-anchor="middle" font-size="8" fill="#818cf8">ADアカウント</text>
+        <line x1="46" y1="28" x2="96" y2="28" stroke="rgba(220,38,38,0.5)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#b2)"/>
+        <text x="71" y="20" text-anchor="middle" font-size="8" fill="#f87171">別アカウント</text>
+        <text x="128" y="22" text-anchor="middle" font-size="14" dominant-baseline="central">🕐</text>
+        <text x="128" y="38" text-anchor="middle" font-size="7.5" fill="currentColor" opacity="0.75">勤怠・経費等</text>
+        <text x="128" y="52" text-anchor="middle" font-size="14" dominant-baseline="central">🗂️</text>
+        <text x="128" y="68" text-anchor="middle" font-size="7.5" fill="currentColor" opacity="0.75">SQL Server</text>
+        <text x="128" y="78" text-anchor="middle" font-size="7" fill="#facc15">SQL Server認証</text>
+      </svg>
+      <div style="background:rgba(234,179,8,0.08);border-radius:8px;padding:0.5rem 0.7rem;font-size:0.76rem;line-height:1.6">
+        <div style="color:#facc15;font-weight:500">△ 別途ログインが必要</div>
+        <div style="opacity:0.7;font-size:0.72rem;margin-top:2px">システム内で個別にアカウントを作成。ADとは別にIDとパスワードを管理。</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+### ファイルサーバへのアクセス
+
+ファイルサーバへのアクセスは、**同じADに所属しているかどうか**で挙動が大きく変わる。
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1.2rem 0">
+
+  <div style="border:1px solid rgba(99,102,241,0.4);border-radius:14px;overflow:hidden">
+    <div style="background:rgba(99,102,241,0.12);padding:0.8rem 1rem;border-bottom:1px solid rgba(99,102,241,0.2)">
+      <div style="font-size:1.2rem;margin-bottom:4px">🟢</div>
+      <div style="font-size:0.82rem;font-weight:500">同じAD管理のファイルサーバ</div>
+      <div style="font-size:0.72rem;opacity:0.6;margin-top:2px">ADが認証を橋渡し</div>
+    </div>
+    <div style="padding:0.9rem 1rem">
+      <svg width="100%" viewBox="0 0 160 90" style="display:block">
+        <defs><marker id="fs1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <text x="28" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">💻</text>
+        <text x="28" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">自分のPC</text>
+        <text x="28" y="60" text-anchor="middle" font-size="8" fill="#818cf8">CORP\yamada</text>
+        <line x1="46" y1="28" x2="96" y2="28" stroke="rgba(99,102,241,0.6)" stroke-width="1.5" marker-end="url(#fs1)"/>
+        <text x="71" y="20" text-anchor="middle" font-size="8" fill="#4ade80">同じAD認証</text>
+        <text x="128" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">🗄️</text>
+        <text x="128" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">ファイルサーバ</text>
+        <text x="128" y="60" text-anchor="middle" font-size="8" fill="#818cf8">同じAD管理</text>
+      </svg>
+      <div style="background:rgba(34,197,94,0.08);border-radius:8px;padding:0.5rem 0.7rem;font-size:0.76rem;line-height:1.6">
+        <div style="color:#4ade80;font-weight:500">◯ 追加ログインなしでアクセスできる</div>
+        <div style="opacity:0.7;font-size:0.72rem;margin-top:2px">ただしフォルダごとのアクセス権（読み取り・書き込み・拒否）は別途設定されている。</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="border:1px solid rgba(220,38,38,0.4);border-radius:14px;overflow:hidden">
+    <div style="background:rgba(220,38,38,0.1);padding:0.8rem 1rem;border-bottom:1px solid rgba(220,38,38,0.2)">
+      <div style="font-size:1.2rem;margin-bottom:4px">🔴</div>
+      <div style="font-size:0.82rem;font-weight:500">別AD管理のファイルサーバ</div>
+      <div style="font-size:0.72rem;opacity:0.6;margin-top:2px">別会社・別部門のAD</div>
+    </div>
+    <div style="padding:0.9rem 1rem">
+      <svg width="100%" viewBox="0 0 160 90" style="display:block">
+        <defs><marker id="fs2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <text x="28" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">💻</text>
+        <text x="28" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">自分のPC</text>
+        <text x="28" y="60" text-anchor="middle" font-size="8" fill="#818cf8">CORP\yamada</text>
+        <line x1="46" y1="28" x2="96" y2="28" stroke="rgba(220,38,38,0.5)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#fs2)"/>
+        <text x="71" y="20" text-anchor="middle" font-size="9" fill="#f87171">✕ 拒否</text>
+        <text x="128" y="28" text-anchor="middle" font-size="20" dominant-baseline="central">🗄️</text>
+        <text x="128" y="48" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.75">ファイルサーバ</text>
+        <text x="128" y="60" text-anchor="middle" font-size="8" fill="#f87171">別AD管理</text>
+      </svg>
+      <div style="background:rgba(220,38,38,0.08);border-radius:8px;padding:0.5rem 0.7rem;font-size:0.76rem;line-height:1.6">
+        <div style="color:#f87171;font-weight:500">✕ ログインできない</div>
+        <div style="opacity:0.7;font-size:0.72rem;margin-top:2px">相手のADに「CORP\yamada」は存在しない。別途アカウントの発行が必要。</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+---
+
+## 連携があれば1回で済む話
+
+「なんで会社によっては1回ログインしたら全部使えるのか？」——その答えが**SSO（シングルサインオン）**だ。
+
+> **SSO：** 1回のログインで複数のシステムに入れる仕組み。システム間に「この人はさっきここで認証済みです」という連絡ができるように設定されている。
+
+SSOには実は2つのパターンがある。どちらも「1回のログインで複数システムに入れる」という結果は同じだが、裏側の仕組みが違う。
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:1.2rem 0">
+  <div style="border:1px solid rgba(99,102,241,0.35);border-radius:10px;overflow:hidden">
+    <div style="background:rgba(99,102,241,0.15);padding:0.6rem 1rem;font-size:0.8rem;font-weight:600;color:#818cf8">一元管理型</div>
+    <div style="padding:0.8rem 1rem;font-size:0.85rem;line-height:1.75">
+      <div style="margin-bottom:8px">1つのアカウントが複数のシステムで<strong>そのまま直接使われる</strong>。</div>
+      <div style="opacity:0.75;font-size:0.8rem;margin-bottom:8px">例：ADアカウントでWindowsにログインすると、AD連携済みのSQL ServerやSharePointにもそのまま入れる。</div>
+      <div style="padding:6px 8px;background:rgba(99,102,241,0.1);border-radius:6px;font-size:0.78rem;color:#818cf8">アカウントは本当に1つ。パスワードも1か所で管理。</div>
+    </div>
+  </div>
+  <div style="border:1px solid rgba(34,197,94,0.35);border-radius:10px;overflow:hidden">
+    <div style="background:rgba(34,197,94,0.15);padding:0.6rem 1rem;font-size:0.8rem;font-weight:600;color:#4ade80">連携型</div>
+    <div style="padding:0.8rem 1rem;font-size:0.85rem;line-height:1.75">
+      <div style="margin-bottom:8px">別々のアカウントが存在するが、「認証情報を橋渡し」する仕組みが間に入っている。</div>
+      <div style="opacity:0.75;font-size:0.8rem;margin-bottom:8px">例：ADアカウントでPCにログインすると、Microsoft 365（別のクラウドアカウント）への認証も自動で行われる。</div>
+      <div style="padding:6px 8px;background:rgba(34,197,94,0.1);border-radius:6px;font-size:0.78rem;color:#4ade80">裏では別アカウント。パスワードはそれぞれ独立している。</div>
+    </div>
+  </div>
+</div>
+
+---
+
+## システム運用保守用アカウント
+
+通常業務で使う一般ユーザーアカウントとは別に、システムを「動かす・管理する」ために使われる特殊なアカウントがある。新人が直接使うことは少ないが、インフラの現場では必ず目にする存在だ。
+
+---
+
+### サービス・アプリケーション・ジョブアカウント
+
+「人間がログインするため」ではなく、**プログラムやシステムが自動で動くため**のアカウントだ。
+
+<div style="display:flex;flex-direction:column;gap:8px;margin:1.2rem 0">
+  {[
+    { icon: "⚙️", name: "サービスアカウント", desc: "Windowsサービスを起動・実行するために使う", example: "svc_sqlserver、svc_iis" },
+    { icon: "🔌", name: "アプリケーションアカウント", desc: "アプリがDBやAPIにアクセスするために使う", example: "app_crmsystem、app_webapi" },
+    { icon: "⏰", name: "ジョブアカウント", desc: "バッチ処理・定期実行ジョブを動かすために使う", example: "job_backup、job_report" },
+  ].map(r => (
+    <div key={r.name} style={{display:"flex",gap:"12px",padding:"0.75rem 1rem",border:"1px solid rgba(59,130,246,0.25)",borderRadius:"10px",background:"rgba(59,130,246,0.06)",alignItems:"flex-start"}}>
+      <div style={{fontSize:"1.4rem",flexShrink:0}}>{r.icon}</div>
+      <div>
+        <div style={{fontSize:"0.85rem",fontWeight:500,marginBottom:"3px",color:"#60a5fa"}}>{r.name}</div>
+        <div style={{fontSize:"0.78rem",opacity:0.85,marginBottom:"3px"}}>{r.desc}</div>
+        <div style={{fontSize:"0.74rem",opacity:0.6}}>例：{r.example}</div>
+      </div>
+    </div>
+  ))}
+</div>
+
+これらのアカウントには共通のルールがある。以下のとおりだ。
+
+- 人間がログインすることを想定していないため、**対話ログインは禁止**するのがセキュリティの基本
+- 必要最小限の権限だけを付与する（前章の最小権限の原則そのもの）
+- パスワードは長くランダムなものを設定する
+
+---
+
+### 管理者アカウント
+
+システムの設定変更・ユーザー管理・障害対応など、強い権限が必要な作業のためのアカウントだ。一般ユーザーが使うものではなく、**インフラ担当・システム管理者など限られた担当者にのみ付与される**。
+
+<div style="display:flex;flex-direction:column;gap:8px;margin:1.2rem 0">
+  {[
+    { name: "ドメイン管理者（Domain Admin）", desc: "AD全体を管理できる最強権限", warn: "インフラ担当など限定的な人員のみ保有" },
+    { name: "ローカル管理者", desc: "そのPC・サーバー単体の管理権限", warn: "必要な作業時のみ使用。作業後は一般権限で運用" },
+    { name: "サーバー管理者", desc: "特定サーバーの管理権限", warn: "対象サーバーの担当者に限定して付与" },
+  ].map(r => (
+    <div key={r.name} style={{padding:"0.75rem 1rem",border:"1px solid rgba(220,38,38,0.25)",borderRadius:"10px",background:"rgba(220,38,38,0.06)"}}>
+      <div style={{fontSize:"0.85rem",fontWeight:500,marginBottom:"4px",color:"#f87171"}}>{r.name}</div>
+      <div style={{fontSize:"0.78rem",opacity:0.85,marginBottom:"3px"}}>{r.desc}</div>
+      <div style={{fontSize:"0.74rem",padding:"4px 8px",background:"rgba(220,38,38,0.1)",borderRadius:"6px",color:"#f87171",marginTop:"6px"}}>⚠ {r.warn}</div>
+    </div>
+  ))}
+</div>
+
+<div style="border-left:4px solid #ef4444;padding:0.8rem 1rem;background:rgba(220,38,38,0.06);border-radius:0 8px 8px 0;margin:1rem 0">
+  <div style="font-size:0.75rem;font-weight:600;color:#ef4444;margin-bottom:4px">運用上の鉄則</div>
+  <div style="font-size:0.85rem;line-height:1.75">管理者アカウントは一般ユーザーが使うものではない。付与された担当者も<strong>管理作業が必要なときだけ使う</strong>のが原則だ。管理作業のログは必ず記録・監査し、作業終了後は権限を戻す、または時限付きで付与する運用が望ましい。</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px;margin:1.2rem 0">
+  <div style="border:1px solid rgba(234,179,8,0.4);border-radius:10px;padding:0.9rem 1rem;background:rgba(234,179,8,0.06)">
+    <div style="font-size:0.78rem;font-weight:600;color:#facc15;margin-bottom:6px">⚠ パスワード変更はシステム停止に直結する</div>
+    <div style="font-size:0.82rem;line-height:1.75;opacity:0.9">サービス・ジョブアカウントのパスワードを変更した場合、そのアカウントで動いているサービスやバッチ処理は<strong>即座に認証エラーで停止する</strong>。パスワード変更の際は、サービスの設定ファイルや認証情報も同時に更新する必要がある。変更前に影響範囲を必ず確認すること。</div>
+  </div>
+  <div style="border:1px solid rgba(220,38,38,0.4);border-radius:10px;padding:0.9rem 1rem;background:rgba(220,38,38,0.06)">
+    <div style="font-size:0.78rem;font-weight:600;color:#f87171;margin-bottom:6px">🚨 アカウントの削除・無効化はシステム再構築リスクを伴う</div>
+    <div style="font-size:0.82rem;line-height:1.75;opacity:0.9">運用保守用アカウントを誤って削除・無効化した場合、そのアカウントに紐づいたサービスが停止するだけでなく、<strong>システムの管理・維持ができなくなる</strong>可能性がある。最悪の場合、システムの再構築が必要になる。「使われていないアカウントだから削除してよい」という判断は絶対に避け、影響調査を徹底した上で対応すること。</div>
+  </div>
+</div>
+
+---
+
+## パスワードを変えると、なぜ複数箇所で再入力を求められるのか
+
+「ADのパスワードを変えたら、あちこちでパスワードを聞かれるようになった」——これも新人がよく戸惑う場面だ。
+
+仕組みはシンプルだ。各システムは「このパスワードで認証済み」という記録（セッション）を持っている。パスワードが変わると、その記録が古くなり、**「この認証情報はもう使えません、もう一度確認させてください」**と各システムが順次聞いてくる。
+
+<div style="margin:1.5rem 0;border:1px solid rgba(128,128,128,0.3);border-radius:10px;overflow:hidden">
+  <div style="background:rgba(128,128,128,0.12);padding:0.6rem 1.2rem;font-size:0.75rem;font-weight:600;border-bottom:1px solid rgba(128,128,128,0.2)">どこでパスワードを変えると、どこで再入力が必要になるか</div>
+  {[
+    { changed: "ADパスワードを変更", affected: "AD連携している社内システム全体", note: "連携型SSOの場合、順次再認証を求められる", color: "rgba(99,102,241,0.1)", border: "rgba(99,102,241,0.3)", tc: "#818cf8" },
+    { changed: "Microsoft 365側で変更", affected: "メール・Office・365系サービス", note: "ADパスワードとは独立しているため、ADには影響なし", color: "rgba(59,130,246,0.1)", border: "rgba(59,130,246,0.3)", tc: "#60a5fa" },
+    { changed: "各システム個別に変更", affected: "そのシステムだけ", note: "他のシステムには一切影響なし", color: "rgba(234,179,8,0.1)", border: "rgba(234,179,8,0.3)", tc: "#facc15" },
+  ].map((r,i) => (
+    <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"12px",padding:"0.75rem 1.2rem",borderBottom:"1px solid rgba(128,128,128,0.15)",background:r.color,alignItems:"start"}}>
+      <div style={{fontSize:"0.82rem",fontWeight:600,color:r.tc}}>{r.changed}</div>
+      <div style={{fontSize:"0.8rem",opacity:0.85}}>{r.affected}</div>
+      <div style={{fontSize:"0.76rem",opacity:0.7,lineHeight:1.5}}>{r.note}</div>
+    </div>
+  ))}
+</div>
+
+> パスワードを変えると「古いパスワードで入れていた記録」が無効になる。自分のパスワードをシステムに改めて教え直す作業が、複数の場所で発生するだけだ。バグでも異常でもない。
+
+<div style="display:flex;flex-direction:column;gap:10px;margin:1.5rem 0">
+  {[
+    { num: "1", title: "同じ名前でも、管理場所が違えば別アカウント", body: "「yamada」というIDが複数のシステムに別々に存在している。パスワード変更も管理場所ごとに独立している。" },
+    { num: "2", title: "何度もパスワードを聞かれるのは「連携がないから」", body: "SSOには「1つのアカウントをそのまま使う型」と「別アカウントを自動で橋渡しする型」の2種類がある。どちらも結果は同じだが、裏の仕組みは異なる。" },
+    { num: "3", title: "パスワードを変えると複数箇所で再入力を求められる", body: "各システムが「古いパスワードで認証済み」という記録を持っているため。変更を各システムに改めて知らせる必要がある。バグではない。" },
+  ].map(r => (
+    <div key={r.num} style={{display:"flex",gap:"14px",padding:"1rem 1.1rem",border:"1px solid rgba(128,128,128,0.25)",borderRadius:"10px",alignItems:"flex-start"}}>
+      <div style={{width:"28px",height:"28px",borderRadius:"50%",background:"rgba(99,102,241,0.2)",color:"#818cf8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.85rem",fontWeight:600,flexShrink:0}}>{r.num}</div>
+      <div>
+        <div style={{fontSize:"0.9rem",fontWeight:600,marginBottom:"4px"}}>{r.title}</div>
+        <div style={{fontSize:"0.82rem",opacity:0.75,lineHeight:1.65}}>{r.body}</div>
+      </div>
+    </div>
+  ))}
+</div>
+
+山田さんが何度もパスワードを求められたのは、バグでも設定ミスでもない。それぞれのシステムが、それぞれの場所で「yamada」を管理しているだけだ。仕組みがわかれば、次からは慌てなくて済む。
+
+---
+
+## 参考リンク
+
+- [Microsoft — Active Directory とは](https://learn.microsoft.com/ja-jp/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview)
+- [Microsoft — Microsoft Entra ID とは](https://learn.microsoft.com/ja-jp/entra/fundamentals/whatis)
+- [AWS — IAM とは](https://docs.aws.amazon.com/ja_jp/IAM/latest/UserGuide/introduction.html)
