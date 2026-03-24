@@ -148,7 +148,7 @@
     border: 1px solid var(--color-border, #e5e7eb);
     border-radius: 0.75rem;
     padding: 1rem;
-    background: var(--color-surface, #ffffff);
+    background: transparent;
     overflow-x: auto;
 
     /* ライトモードのデフォルト値 */
@@ -170,27 +170,44 @@
   }
 
   /* クラスベースのダークモード（Tailwind dark: など） */
-  :global(.dark) .xml-diagram-wrap,
+  :global(.dark) .xml-diagram-wrap {
+    border-color: #374151;
+    --xml-main-bg: #1e1035;
+    --xml-main-stroke: #7c5cdb;
+    --xml-main-text: #d4c8f8;
+    --xml-main-sub: #9f87e0;
+    --xml-import-stroke: #6366f1;
+    --xml-sub-bg: #0f1f38;
+    --xml-sub-stroke: #3a6faa;
+    --xml-sub-text: #8ab4d8;
+    --xml-sub-sub: #6090b8;
+    --xml-schema-bg: #2a1200;
+    --xml-schema-stroke: #b85c00;
+    --xml-schema-text: #d4924a;
+    --xml-schema-sub: #b86820;
+    --xml-ref-stroke: #b85c00;
+    --xml-legend-text: #9ca3af;
+  }
+
   /* OSレベルのダークモード */
   @media (prefers-color-scheme: dark) {
     .xml-diagram-wrap {
-      background: var(--color-surface, #1e1e2e);
       border-color: #374151;
-      --xml-main-bg: #2e1065;
-      --xml-main-stroke: #a78bfa;
-      --xml-main-text: #ede9fe;
-      --xml-main-sub: #c4b5fd;
-      --xml-import-stroke: #818cf8;
-      --xml-sub-bg: #1e3a5f;
-      --xml-sub-stroke: #60a5fa;
-      --xml-sub-text: #bfdbfe;
-      --xml-sub-sub: #93c5fd;
-      --xml-schema-bg: #431407;
-      --xml-schema-stroke: #fb923c;
-      --xml-schema-text: #fed7aa;
-      --xml-schema-sub: #fb923c;
-      --xml-ref-stroke: #fb923c;
-      --xml-legend-text: #d1d5db;
+      --xml-main-bg: #1e1035;
+      --xml-main-stroke: #7c5cdb;
+      --xml-main-text: #d4c8f8;
+      --xml-main-sub: #9f87e0;
+      --xml-import-stroke: #6366f1;
+      --xml-sub-bg: #0f1f38;
+      --xml-sub-stroke: #3a6faa;
+      --xml-sub-text: #8ab4d8;
+      --xml-sub-sub: #6090b8;
+      --xml-schema-bg: #2a1200;
+      --xml-schema-stroke: #b85c00;
+      --xml-schema-text: #d4924a;
+      --xml-schema-sub: #b86820;
+      --xml-ref-stroke: #b85c00;
+      --xml-legend-text: #9ca3af;
     }
   }
 </style>
