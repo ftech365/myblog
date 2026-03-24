@@ -19,7 +19,7 @@
       </marker>
       <marker id="arr-ref" viewBox="0 0 10 10" refX="8" refY="5"
         markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-        <path d="M2 1L8 5L2 9" fill="none" stroke="#e07b00"
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke"
           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </marker>
     </defs>
@@ -100,31 +100,31 @@
 
     <!-- 参照矢印（database・server → shared-schema.xsd） -->
     <line x1="120" y1="202" x2="240" y2="288"
-      stroke="#e07b00" stroke-width="1.5"
+      stroke="var(--xml-ref-stroke)" stroke-width="1.5"
       stroke-dasharray="4 3" marker-end="url(#arr-ref)"/>
     <line x1="340" y1="202" x2="300" y2="288"
-      stroke="#e07b00" stroke-width="1.5"
+      stroke="var(--xml-ref-stroke)" stroke-width="1.5"
       stroke-dasharray="4 3" marker-end="url(#arr-ref)"/>
 
     <!-- 参照ラベル -->
     <text x="160" y="258" text-anchor="middle"
       font-family="var(--font-sans, sans-serif)" font-size="10"
-      fill="#e07b00">参照</text>
+      fill="var(--xml-ref-stroke)">参照</text>
     <text x="344" y="258" text-anchor="middle"
       font-family="var(--font-sans, sans-serif)" font-size="10"
-      fill="#e07b00">参照</text>
+      fill="var(--xml-ref-stroke)">参照</text>
 
     <!-- shared-schema.xsd -->
     <g>
       <rect x="200" y="288" width="200" height="52" rx="8"
-        fill="var(--xml-schema-bg, #fff7ed)" stroke="#e07b00"
+        fill="var(--xml-schema-bg)" stroke="var(--xml-schema-stroke)"
         stroke-width="1"/>
       <text x="300" y="310" text-anchor="middle"
         font-family="var(--font-mono, monospace)" font-size="12" font-weight="600"
-        fill="#92400e">shared-schema.xsd</text>
+        fill="var(--xml-schema-text)">shared-schema.xsd</text>
       <text x="300" y="328" text-anchor="middle"
         font-family="var(--font-sans, sans-serif)" font-size="11"
-        fill="#e07b00">共通の型定義ファイル</text>
+        fill="var(--xml-schema-sub)">共通の型定義ファイル</text>
     </g>
 
     <!-- 凡例 -->
@@ -135,7 +135,7 @@
       fill="var(--xml-legend-text, #4b5563)">import（ファイルを読み込む）</text>
 
     <line x1="310" y1="352" x2="342" y2="352"
-      stroke="#e07b00" stroke-width="1.5"
+      stroke="var(--xml-ref-stroke)" stroke-width="1.5"
       stroke-dasharray="4 3" marker-end="url(#arr-ref)"/>
     <text x="348" y="356" font-family="var(--font-sans, sans-serif)" font-size="11"
       fill="var(--xml-legend-text, #4b5563)">参照（型定義を参照する）</text>
@@ -150,11 +150,32 @@
     padding: 1rem;
     background: var(--color-surface, #ffffff);
     overflow-x: auto;
+
+    /* ライトモードのデフォルト値 */
+    --xml-main-bg: #ede9fe;
+    --xml-main-stroke: #7c3aed;
+    --xml-main-text: #4c1d95;
+    --xml-main-sub: #6d28d9;
+    --xml-import-stroke: #6366f1;
+    --xml-sub-bg: #eff6ff;
+    --xml-sub-stroke: #3b82f6;
+    --xml-sub-text: #1e40af;
+    --xml-sub-sub: #3b82f6;
+    --xml-schema-bg: #fff7ed;
+    --xml-schema-stroke: #e07b00;
+    --xml-schema-text: #92400e;
+    --xml-schema-sub: #e07b00;
+    --xml-ref-stroke: #e07b00;
+    --xml-legend-text: #4b5563;
   }
 
-  /* ダークモード対応 */
+  /* クラスベースのダークモード（Tailwind dark: など） */
+  :global(.dark) .xml-diagram-wrap,
+  /* OSレベルのダークモード */
   @media (prefers-color-scheme: dark) {
     .xml-diagram-wrap {
+      background: var(--color-surface, #1e1e2e);
+      border-color: #374151;
       --xml-main-bg: #2e1065;
       --xml-main-stroke: #a78bfa;
       --xml-main-text: #ede9fe;
@@ -165,6 +186,10 @@
       --xml-sub-text: #bfdbfe;
       --xml-sub-sub: #93c5fd;
       --xml-schema-bg: #431407;
+      --xml-schema-stroke: #fb923c;
+      --xml-schema-text: #fed7aa;
+      --xml-schema-sub: #fb923c;
+      --xml-ref-stroke: #fb923c;
       --xml-legend-text: #d1d5db;
     }
   }
