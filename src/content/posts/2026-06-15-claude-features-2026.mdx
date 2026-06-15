@@ -1,0 +1,406 @@
+---
+title: "2026年6月版 Claude提供機能一覧 — チャットから自律エージェントまで全機能を整理する"
+description: "Anthropicが提供するClaudeの全機能を2026年6月時点でまとめた。チャット・Claude Code・Cowork・MCP・Computer Useなど各機能の概要・利用条件・実務ユースケースを網羅する。"
+pubDate: 2026-06-15
+tags: ["Claude", "Anthropic", "AI", "生成AI"]
+category: "その他"
+draft: false
+featured: false
+---
+
+## はじめに
+
+Anthropicが提供するClaudeは、2025〜2026年にかけて「チャットで質問に答えるAI」から「実際に仕事をこなす自律エージェント群」へと急速に進化した。機能の追加ペースが速く、ニュースを見ても何の話をしているのか把握しづらくなっている。
+
+本記事では2026年6月時点の機能を体系的に整理し、それぞれが実務でどう使えるかを具体的に示す。
+
+---
+
+## 目次
+
+- [全体像：3つのアクセス手段を軸に理解する](#全体像3つのアクセス手段を軸に理解する)
+- [Claude.ai — メインチャット画面](#claudeai--メインチャット画面)
+- [Claude Code — エンジニア向けコーディングエージェント](#claude-code--エンジニア向けコーディングエージェント)
+- [Cowork — 非エンジニア向けデスクトップエージェント](#cowork--非エンジニア向けデスクトップエージェント)
+- [Claude Mythos / Project Glasswing — 招待制・セキュリティ特化モデル](#claude-mythos--project-glasswing--招待制セキュリティ特化モデル)
+- [プラン別の利用可否](#プラン別の利用可否)
+- [まとめ](#まとめ)
+
+---
+
+## 全体像：3つのアクセス手段を軸に理解する
+
+Claudeの機能を理解するうえでまず把握すべきは、アクセス手段が3本立てになっている点だ。
+
+<div style="padding:1rem 0;">
+
+  <p style="font-size:11px;font-weight:500;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;">アクセス手段</p>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px;">
+
+    <div style="border:1px solid #1e2d47;border-radius:12px;padding:16px;background:#151d2e;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#00e5ff;">✉</span>
+        <span style="font-size:13px;font-weight:500;color:#e2e8f0;">Claude.ai</span>
+      </div>
+      <p style="font-size:11px;color:#94a3b8;margin:0 0 12px;">ブラウザ・スマホ・デスクトップ</p>
+      <div style="border-left:1.5px solid #1e2d47;padding-left:10px;display:flex;flex-direction:column;gap:8px;">
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Projects</span><br /><span style="font-size:11px;color:#94a3b8;">ファイル・指示書の永続ワークスペース</span></div>
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Memory</span><br /><span style="font-size:11px;color:#94a3b8;">会話をまたいだ自動記憶</span></div>
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Extended Thinking</span><br /><span style="font-size:11px;color:#94a3b8;">回答前の長時間推論モード</span></div>
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Artifacts</span><br /><span style="font-size:11px;color:#94a3b8;">コード・UIをその場で生成</span></div>
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Webサーチ</span><br /><span style="font-size:11px;color:#94a3b8;">リアルタイムWeb検索</span></div>
+      </div>
+    </div>
+
+    <div style="border:1px solid #1e2d47;border-radius:12px;padding:16px;background:#151d2e;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#a78bfa;font-family:monospace;">&gt;_</span>
+        <span style="font-size:13px;font-weight:500;color:#e2e8f0;">Claude Code</span>
+      </div>
+      <p style="font-size:11px;color:#94a3b8;margin:0 0 12px;">ターミナル・IDEで動くコーディングエージェント</p>
+      <div style="border-left:1.5px solid #1e2d47;padding-left:10px;display:flex;flex-direction:column;gap:8px;">
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Subagents</span><br /><span style="font-size:11px;color:#94a3b8;">並列マルチエージェント（最大1,000）</span></div>
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Hooks / Routines</span><br /><span style="font-size:11px;color:#94a3b8;">イベント連動・定期自動実行</span></div>
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">GitHub Actions</span><br /><span style="font-size:11px;color:#94a3b8;">CI/CDパイプライン組み込み</span></div>
+        <div style="border-top:1px dashed #1e2d47;padding-top:8px;margin-top:2px;">
+          <p style="font-size:10px;color:#64748b;margin:0 0 6px;letter-spacing:.05em;">内部技術</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Computer Use</span><br /><span style="font-size:11px;color:#94a3b8;">PC・ブラウザの自律操作</span></div>
+            <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">MCP</span><br /><span style="font-size:11px;color:#94a3b8;">外部ツール連携（GitHub・Jira等）</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="border:1px solid #1e2d47;border-radius:12px;padding:16px;background:#151d2e;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#f59e0b;font-weight:500;">PC</span>
+        <span style="font-size:13px;font-weight:500;color:#e2e8f0;">Cowork</span>
+      </div>
+      <p style="font-size:11px;color:#94a3b8;margin:0 0 12px;">非エンジニア向けデスクトップエージェント</p>
+      <div style="border-left:1.5px solid #1e2d47;padding-left:10px;display:flex;flex-direction:column;gap:8px;">
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Plugins</span><br /><span style="font-size:11px;color:#94a3b8;">職種別コネクタバンドル</span></div>
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Scheduled Tasks</span><br /><span style="font-size:11px;color:#94a3b8;">スケジュール自動実行</span></div>
+        <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Dispatch</span><br /><span style="font-size:11px;color:#94a3b8;">スマホからのPC遠隔操作</span></div>
+        <div style="border-top:1px dashed #1e2d47;padding-top:8px;margin-top:2px;">
+          <p style="font-size:10px;color:#64748b;margin:0 0 6px;letter-spacing:.05em;">内部技術</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">Computer Use</span><br /><span style="font-size:11px;color:#94a3b8;">PC・ブラウザの自律操作</span></div>
+            <div><span style="font-size:11px;font-weight:500;color:#e2e8f0;">MCP</span><br /><span style="font-size:11px;color:#94a3b8;">外部ツール連携（Slack・SF等）</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr style="border:none;border-top:1px solid #1e2d47;margin:4px 0 12px;" />
+
+  <p style="font-size:11px;font-weight:500;color:#f87171;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;">別枠 — 招待制・一般提供なし</p>
+
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+
+    <div style="border:1.5px solid #7f1d1d;border-radius:12px;padding:16px;background:rgba(127,29,29,0.2);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="font-size:16px;">🛡</span>
+        <span style="font-size:13px;font-weight:500;color:#f87171;">Claude Mythos</span>
+        <span style="font-size:10px;font-weight:500;color:#f87171;background:rgba(127,29,29,0.4);border:1px solid #7f1d1d;border-radius:6px;padding:2px 8px;white-space:nowrap;">一般未公開</span>
+      </div>
+      <p style="font-size:11px;font-weight:500;color:#fca5a5;margin:0 0 6px;">サイバーセキュリティ特化の最上位モデル</p>
+      <p style="font-size:11px;color:#94a3b8;margin:0;line-height:1.7;">悪用リスクを理由に一般公開せず。招待審査を通過した組織のみアクセス可。どの有料プランを契約しても利用できない別枠。</p>
+    </div>
+
+    <div style="border:1.5px solid #7f1d1d;border-radius:12px;padding:16px;background:rgba(127,29,29,0.2);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="font-size:16px;">🐛</span>
+        <span style="font-size:13px;font-weight:500;color:#f87171;">Project Glasswing</span>
+        <span style="font-size:10px;font-weight:500;color:#f87171;background:rgba(127,29,29,0.4);border:1px solid #7f1d1d;border-radius:6px;padding:2px 8px;white-space:nowrap;">招待審査制</span>
+      </div>
+      <p style="font-size:11px;font-weight:500;color:#fca5a5;margin:0 0 6px;">Mythosを使った世界規模の脆弱性発見プログラム</p>
+      <p style="font-size:11px;color:#94a3b8;margin:0;line-height:1.7;">AWS・Apple・Microsoft等 200組織以上が参加。重大脆弱性10,000件超・150万ドル不正送金の検知・停止など実績あり。</p>
+    </div>
+
+  </div>
+
+  <p style="font-size:11px;color:#64748b;text-align:right;margin:10px 0 0;">2026年6月時点</p>
+
+</div>
+Computer UseとMCPはClaude Code・Coworkそれぞれが内部的に利用する技術基盤であり、独立したアクセス手段ではない。また、Mythos / GlasswingはどのプランでもアクセスできないAnthropicの別枠プログラムだ。
+
+---
+
+## Claude.ai — メインチャット画面
+
+
+---
+
+### Projects
+
+**概要**
+
+ファイルや指示書を事前に登録しておける「作業ワークスペース」。同じProjectのチャットは毎回フルコンテキストで開始される。
+
+**実務ユースケース**
+
+コンテンツ制作を例にする。Projectにトンマナ定義・NG表現集・過去記事サンプルを登録しておくと、毎回の背景説明が不要になる。「今月のブログ3本分の構成案を出して」と一言投げるだけで、ブランドに沿ったアウトラインが即返ってくる。法務Q&amp;A窓口として使う場合は、社内の契約書テンプレートや審査基準をProjectに格納しておけば、営業担当が「この条項は通常の条件から外れていますか？」と聞くだけで過去の判断基準に照らした回答が返る。
+
+**利用条件**
+
+無料含む全プランで利用可能。Teamプランは複数メンバー間での共有に対応。
+
+---
+
+### Memory
+
+**概要**
+
+過去の会話から重要な情報を自動で抽出し、次のセッションに引き継ぐ機能。2026年3月に無料ユーザーにも開放された。設定画面から内容の確認・編集・削除ができる。
+
+**実務ユースケース**
+
+エンジニアがデバッグセッションを繰り返すうちに、「このプロジェクトではコンポーネント分割を細かくする方針」「このバグパターンは過去にも同じ原因で発生した」といった経験知をClaudeが記憶し、次のセッションで先回りして提案してくれる。プロジェクトをまたいだ文脈の引き継ぎに使える。
+
+**利用条件**
+
+無料含む全プラン。Projectスコープでの記憶隔離も可能。
+
+---
+
+### Extended Thinking
+
+**概要**
+
+回答前に内部で長時間の推論を行うモード。複雑な多段推論・数学・競合分析などで精度が向上する。
+
+**実務ユースケース**
+
+M&amp;A候補のデューデリジェンス下調べを例にする。財務資料・業界レポート・有価証券報告書を一括投入し「リスク要因と潜在的なシナジーを多角的に分析して」と指示すると、通常モードでは見落とされがちな論点まで構造的に抽出する。アーキテクチャ選定の比較評価でも、「マイクロサービス vs モノリスを将来の成長シナリオ3パターンで評価して」のような複雑な問いに対し、トレードオフ・コスト試算・移行リスクを含めた分析レポートを出力する。
+
+**利用条件**
+
+全プランで利用可能。
+
+---
+
+### Artifacts
+
+**概要**
+
+コード・文書・インタラクティブUIなどを会話内でその場に表示・保存できる機能。Coworkでは「Live Artifacts」としてダッシュボードやドキュメントが開くたびにデータを再実行・更新する。
+
+**利用条件**
+
+無料含む全プラン。
+
+---
+
+### Webサーチ
+
+**概要**
+
+Claudeがリアルタイムでウェブ検索を行い、最新情報を引用付きで回答する機能。チャット画面でトグル切り替えが可能。
+
+**利用条件**
+
+全プランで利用可能（2025年5月〜）。API経由では$10/1,000回の従量課金。
+
+---
+
+## Claude Code — エンジニア向けコーディングエージェント
+
+---
+
+### 概要
+
+ターミナルおよびIDE（VS Code・JetBrains）上で動作するエンジニア向けのコーディングエージェント。コードの生成・実行・デバッグ・git操作を含む開発フロー全体をカバーする。Claude Codeの多くの内部機能はエージェントループ（計画→実行→検証→修正のサイクル）で動作する。
+
+---
+
+### Subagents（マルチエージェント）
+
+**概要**
+
+メインセッションが複数のサブエージェントを並列起動し、大きなタスクを分業処理する機能。2026年5月時点で最大1,000サブエージェントの動的ワークフローが研究プレビューとして提供されている。
+
+**実務ユースケース**
+
+フルスタックアプリの並列開発を例にする。「バックエンドAPI担当」「フロントエンド担当」「ユニットテスト担当」の3サブエージェントを並列起動し、機能単位で同時実装する。通常数日かかる規模の実装を時間単位に圧縮できる。また、未知のリポジトリを把握するために「Exploreサブエージェント」を読み取り専用で起動し、アーキテクチャ概要・依存関係・テストカバレッジのレポートを自動生成するという使い方もある。新メンバーのオンボーディング工数の削減に有効だ。
+
+---
+
+### Hooks / Routines
+
+**概要**
+
+特定のイベント（ファイル変更・コマンド実行前後など）にカスタム処理を割り込ませる仕組みがHooks。定期的なタスクを自動実行するスケジューリング機能がRoutines。
+
+**実務ユースケース**
+
+PRを作成するたびに自動でセキュリティレビューを走らせるHookを設定しておくと、人間のレビュー前に明らかな脆弱性を検出できる。Routinesを使えばCRONの知識なしに「毎朝9時にテストを実行してSlackに結果を投稿する」といった定期タスクを設定できる。
+
+---
+
+### GitHub Actions連携
+
+**概要**
+
+CI/CDパイプラインにClaude Codeを組み込む仕組み。2026年6月15日以降はAgent SDKクレジットとして別途メータリングされる。
+
+**実務ユースケース**
+
+PRごとに`/ultrareview`コマンドを自動実行し、セキュリティ脆弱性・パフォーマンス劣化・テスト不足を検出してコメント投稿するパイプラインを構築できる。人間では見逃しやすい深い問題の指摘まで自動化できる。
+
+---
+
+---
+
+### Computer Use（内部技術）
+
+**概要**
+
+ClaudeがスクリーンショットでPC画面を認識し、マウスクリック・キーボード入力・スクロールを実行することで人間と同じ操作でタスクを完遂する技術基盤。Claude CodeおよびCoworkはこの技術を内部的に使用している。
+
+APIとしての利用は開発者向けにサンドボックス環境内での実行が前提で、APIが存在するタスクでは通常のAPI連携の方が速い。
+
+**実務ユースケース**
+
+APIが存在しない基幹システム（SAP・政府ポータル・古い社内Webツール）へのデータ入力・帳票出力を自動化できる。ZapierやMakeでは手が届かなかった「APIなき壁」を突破できる点がRPAツールとの最大の差別化要因だ。E2Eテストの代替としても、「ユーザーとして購入フローを全パターン試して」と指示するだけで、テストコードなしに本番同等の環境でQAを実施できる。
+
+---
+
+### MCP（内部技術）
+
+**概要**
+
+Model Context Protocol（MCP）はAnthropicが主導するオープン標準で、ClaudeとSlack・GitHub・Notion・Salesforceなどの外部ツールを標準インターフェースで接続する技術基盤。2026年6月時点で6,000以上のアプリとの連携が可能。Claude.ai・Claude Code・Coworkのいずれからでも同じMCPサーバーを利用できる。
+
+従来のAPI連携との違いは以下のとおりだ。
+
+| | 従来のAPI連携 | MCP |
+|---|---|---|
+| 対象 | 人間の開発者 | AIモデル |
+| インターフェース | 固定スキーマ | AIが動的に解釈 |
+| ガバナンス | ツールごとに個別管理 | MCPサーバー層で一元管理 |
+| 再利用性 | 連携ごとに実装 | 一度つなげば全ワークフローで使い回し可能 |
+
+**実務ユースケース**
+
+「昨日から発生しているAPIエラーの原因を調べて」と投げるだけで、JiraのチケットID取得→GitHubの関連コミット検索→Slackの過去ログ参照→原因仮説をSlackに投稿、という一連のアクションを人間の操作なしに完了できる。Salesforceを使う場合は商談後に「今日の打ち合わせをまとめて」と指示するだけで、MCPが取引先情報を取得して議事録とアクションアイテムを自動入力する。
+
+
+## Cowork — 非エンジニア向けデスクトップエージェント
+
+---
+
+### 概要
+
+Claudeの「Claude Codeと同等の自律実行能力を、非エンジニアが使えるGUIで提供する」というコンセプトで2026年1月にリサーチプレビューとして登場したデスクトップエージェント。2026年4月に有料プラン全体へ一般提供が開始された。当初はMac専用だったが、その後Windowsにも対応。ファイルシステム・ブラウザ・メール・カレンダーをまたぐ複数ステップのタスクを自律実行できる。
+
+---
+
+### Plugins / MCPコネクタ
+
+**概要**
+
+Cowork上で外部サービスと連携するためのプラグイン群。法務・マーケティング・人事など職種別のバンドルが順次リリースされている（Legal: 2026年5月12日、Small Business: 5月13日、Marketing Ops: 5月18日）。
+
+---
+
+### Scheduled Tasks（Routines）
+
+**概要**
+
+定期タスクをスケジュール実行する機能。技術的な知識なしに繰り返し業務を自動化できる。
+
+**実務ユースケース**
+
+「毎週月曜8時に先週分の売上CSVを集計し、グラフ付きのレポートを作成してOutlookで上長に送る」というルーティンをCoworkに設定しておくと、担当者が毎週月曜午前に2時間かけていた作業がゼロになる。
+
+> **注意**: スケジュールタスクを実行するにはMacがスリープしていない状態でClaude Desktopが起動している必要がある。夜間バッチを設定する場合はスリープ設定を確認すること。
+
+---
+
+### Dispatch
+
+**概要**
+
+スマートフォンからCoworkを遠隔操作できる機能。2026年3月17日にリサーチプレビューが公開された。
+
+**実務ユースケース**
+
+外出中にスマホから「競合5社の価格を調べてスプレッドシートにまとめておいて」と指示する。CoworkがデスクトップのブラウザをComputer Useで操作しながら自律実行し、帰社時には完成ファイルが共有フォルダに保存されている。
+
+---
+
+## Claude Mythos / Project Glasswing — 招待制・セキュリティ特化モデル
+
+---
+
+### 概要
+
+Claude Mythosは2026年4月にAnthropicが公開した最上位モデルで、ソフトウェアの脆弱性発見能力に特化している。「AIが最も熟練した人間を超えるレベルで脆弱性を発見・悪用できる段階に達した」というAnthropicの認識のもと、悪用リスクを理由に一般公開は行われていない。
+
+Project Glasswingは同モデルを防衛目的限定で活用する産学官連携プログラム。AWS・Apple・Microsoft・Cisco・Google・JPMorganなどが参加し、2026年6月時点で200組織以上に拡大している。
+
+---
+
+### 実績
+
+Glasswing参加組織が報告している成果は以下のとおりだ。
+
+- 重大度の高い脆弱性を10,000件以上発見（プログラム開始から数週間）
+- Cloudflareの重要インフラで2,000件超の脆弱性を検出
+- Firefox 150で271件のパッチをMozillaが適用
+- 銀行パートナーが150万ドルの不正送金を実行中に検知・停止
+
+> **注意**: Claude Mythosはどの有料プランを購入しても使用できない。厳格な審査を通過した組織のみが招待ベースでアクセスできる別枠のプログラムである。一般向けには「Mythosクラスのモデル」が近い将来提供される見込みとAnthropicが発表しているが、時期は未確定だ。
+
+---
+
+## プラン別の利用可否
+
+主な機能のプラン別の対応状況をまとめる。
+
+| 機能 | Free | Pro ($20/月) | Max ($100〜200/月) | Team | Enterprise |
+|---|---|---|---|---|---|
+| チャット | ✅（制限あり） | ✅（5倍上限） | ✅（最大上限） | ✅ | ✅ |
+| Webサーチ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Projects / Artifacts | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Memory | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Extended Thinking | ✅ | ✅ | ✅ | ✅ | ✅ |
+| MCP（基本コネクタ） | ✅（主要アプリのみ） | ✅（フル） | ✅ | ✅ | ✅ |
+| Claude in Excel / PowerPoint | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Cowork | ❌ | ✅ | ✅ | Premiumのみ | ✅ |
+| Computer Use | ❌ | ✅（Mac限定） | ✅ | ✅ | ✅ |
+| Claude Code | ❌ | ✅ | ✅ | Premiumのみ | ✅ |
+| SSO / 管理者機能 | ❌ | ❌ | ❌ | ✅ | ✅ |
+| 学習データへの不使用 | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Claude Mythos | ❌ | ❌ | ❌ | ❌ | ❌（招待審査制） |
+
+> **ポイント**: 無料プランでもチャット・Webサーチ・Projects・Memory・MCPの基本連携は使える。「使い切ってから課金を検討する」で十分で、先払いで上位プランにする必要はない。
+
+---
+
+## まとめ
+
+2026年6月時点のClaudeを一言で表すなら、「チャットAIとしての側面を残しながら、自律エージェント群としての性格を急速に強めているプロダクト群」だ。
+
+機能を追うときのポイントをまとめると以下のとおりだ。
+
+- **Claude Code関連のニュース** → エンジニアの開発ワークフロー効率化の話
+- **Cowork関連のニュース** → 非エンジニアのPC業務自動化の話
+- **MCP関連のニュース** → 外部ツールとの連携エコシステムが広がる話
+- **Computer Use関連のニュース** → ClaudeがPCやブラウザを人間と同じ操作で動かす話
+- **Mythos / Glasswing関連のニュース** → サイバーセキュリティ領域でのAI活用の話
+- **モデル名（Opus / Sonnet / Haiku）のニュース** → 性能・速度・コストのグレードが更新された話
+
+---
+
+## 参考リンク
+
+- [Anthropic公式 — モデル一覧](https://www.anthropic.com/models)
+- [Anthropic公式 — Project Glasswing](https://www.anthropic.com/glasswing)
+- [Claude料金プラン](https://claude.ai/pricing)
+- [Claude Code ドキュメント](https://docs.anthropic.com/en/docs/claude-code/overview)
+- [MCP公式仕様](https://modelcontextprotocol.io)
