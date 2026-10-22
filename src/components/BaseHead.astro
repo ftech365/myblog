@@ -14,6 +14,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 <!-- Global Metadata -->
 <meta charset="utf-8" />
+<!-- Content Security Policy（GitHub Pages はレスポンスヘッダーを設定できないため meta で指定） -->
+<meta
+  http-equiv="Content-Security-Policy"
+  content={[
+    "default-src 'self'",
+    "script-src 'self' https://www.googletagmanager.com",
+    "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
+    "img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com",
+    // Google Fonts（global.css の @import）を読み込むため
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ')}
+/>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
 <link rel="sitemap" href={`${base}/sitemap-index.xml`} />
@@ -41,9 +57,4 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-VMKBRKM2PN"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-VMKBRKM2PN');
-</script>
+<script is:inline src={`${base}/gtag-init.js`}></script>

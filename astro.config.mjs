@@ -33,5 +33,10 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      // 小さな <script> がHTMLにインライン化されると CSP (script-src 'self') でブロックされるため、
+      // 常に外部ファイルとして出力させる
+      assetsInlineLimit: 0,
+    },
   },
 });
