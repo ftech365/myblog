@@ -8,13 +8,13 @@
 ## プロジェクト概要
 
 個人向けインフラ・資格系の技術ブログ。  
-**Astro + Decap CMS + GitHub Pages** 構成で構築する。
+**Astro + GitHub Pages** 構成で構築する。（当初予定していた Decap CMS は現在は未使用・削除済み）
 
 ### 主な要件
 - **テーマ**: AWS / Linux / Terraform / Kubernetes / 資格取得記録 など
 - **執筆方法**: 以下の2パターンに対応（詳細は「コンテンツ作成ガイド」セクション参照）
   - Claude Code CLI から記事を生成・編集する
-  - Decap CMS の管理画面 または エディタで手動執筆する
+  - エディタで手動執筆する（Decap CMS 管理画面は現在は未使用・削除済み）
 - **ホスティング**: GitHub Pages
 - **言語**: 日本語のみ
 - **デザイン**: ダーク系（黒・ネイビー）、おしゃれ・個性的
@@ -29,7 +29,7 @@
 ### セキュリティ要件（必須）
 - **記事改変の防止**: オーナー本人以外は記事を変更・追加できない
 - **不正リンク・埋め込みの防止**: XSS・コンテンツインジェクションを構造的にブロックする
-- **各コンポーネントのベストプラクティス遵守**: Astro / GitHub / Decap CMS それぞれの推奨設定を適用する
+- **各コンポーネントのベストプラクティス遵守**: Astro / GitHub それぞれの推奨設定を適用する
 
 ---
 
@@ -39,7 +39,7 @@
 |---|---|
 | フレームワーク | [Astro](https://astro.build/) v4.x |
 | スタイリング | Tailwind CSS v3 |
-| CMS | Decap CMS（管理画面: `/admin`） |
+| CMS | なし（Decap CMS は現在は未使用・削除済み） |
 | 検索 | Pagefind |
 | ホスティング | GitHub Pages |
 | CI/CD | GitHub Actions |
@@ -85,9 +85,6 @@
 ```
 /
 ├── public/
-│   ├── admin/
-│   │   ├── index.html       # Decap CMS管理画面
-│   │   └── config.yml       # CMSの設定
 │   └── fonts/
 ├── src/
 │   ├── components/
@@ -171,7 +168,8 @@ export const collections = { posts };
 - `posts/[...slug].astro`: 記事詳細（目次自動生成）
 - `tags/[tag].astro`: タグ別一覧
 
-### Step 6: Decap CMS設定（`public/admin/config.yml`）
+### Step 6: Decap CMS設定（`public/admin/config.yml`）【現在は未使用・削除済み】
+> **【現在は未使用・削除済み】** Decap CMS 管理画面（`public/admin/`）は 2026-10 に削除した（`config.yml` の `repo:` がプレースホルダーのままで機能しておらず、unpkg から範囲指定・SRIなしでスクリプトを読み込んでいたため）。以下は当初の構築計画として残している記述。
 ```yaml
 backend:
   name: github
@@ -284,11 +282,11 @@ draft: false
 
 ```
 [攻撃者] → GitHubリポジトリへの不正push  → Branch Protection Rules でブロック
-[攻撃者] → Decap CMS経由の記事改ざん    → GitHub OAuth + Collaborator権限制御でブロック
+[攻撃者] → Decap CMS経由の記事改ざん    → 管理画面自体を削除済み（未使用）
 [攻撃者] → XSS / スクリプト注入         → CSP ヘッダー + Astro の自動エスケープでブロック
 [攻撃者] → 不正iframeの埋め込み         → CSP frame-src 制限でブロック
 [攻撃者] → 外部リソースの勝手な読み込み  → CSP default-src 制限でブロック
-[攻撃者] → 管理画面への不正アクセス     → GitHub OAuth 認証必須でブロック
+[攻撃者] → 管理画面への不正アクセス     → 管理画面自体を削除済み（未使用）
 ```
 
 ---
@@ -324,7 +322,9 @@ Branch name pattern: main
 
 ---
 
-### 2. Decap CMS の認証設定
+### 2. Decap CMS の認証設定【現在は未使用・削除済み】
+
+> **【現在は未使用・削除済み】** Decap CMS 管理画面（`public/admin/`）は 2026-10 に削除した（`config.yml` の `repo:` がプレースホルダーのままで機能しておらず、unpkg から範囲指定・SRIなしでスクリプトを読み込んでいたため）。以下は当初の構築計画として残している記述。
 
 #### GitHub OAuth Appの設定
 Decap CMSはGitHub OAuthを使って認証する。以下の設定で自分以外はログインしても操作できない。
@@ -387,8 +387,7 @@ GitHub Pages は `_headers` ファイルをサポートしていないが、
 </head>
 ```
 
-> **注意**: Decap CMS の管理画面（`/admin`）は外部スクリプトを読み込むため、
-> `public/admin/index.html` には上記CSPを適用しないこと。管理画面は自分だけが使うページ。
+> **注意**: Decap CMS の管理画面（`/admin`）は現在は未使用・削除済みのため、CSP の例外は不要。
 
 ---
 
@@ -525,7 +524,7 @@ jobs:
 - [ ] 自分以外の Collaborator を **追加していない**
 - [ ] GitHub Actions の権限が **最小限（read/write必要分のみ）** になっている
 
-#### Decap CMS設定
+#### Decap CMS設定（現在は未使用・削除済みのため対象外）
 - [ ] `config.yml` の `repo:` が正しいリポジトリ名になっている
 - [ ] GitHub OAuth App を設定した
 - [ ] 管理画面URLを確認し、不要であれば難読化した
@@ -610,7 +609,9 @@ draft: false              # true にすると公開されない
 **ファイル名の命名規則**: `YYYY-MM-DD-slug名.md`  
 例: `2025-12-01-aws-saa-study.md`
 
-#### B-2: Decap CMS 管理画面から書く
+#### B-2: Decap CMS 管理画面から書く【現在は未使用・削除済み】
+
+> **【現在は未使用・削除済み】** Decap CMS 管理画面（`public/admin/`）は 2026-10 に削除した（`config.yml` の `repo:` がプレースホルダーのままで機能しておらず、unpkg から範囲指定・SRIなしでスクリプトを読み込んでいたため）。以下は当初の構築計画として残している記述。
 
 ブログを GitHub Pages にデプロイした後、`https://あなたのドメイン/admin` にアクセスすると管理画面が使える。
 
@@ -641,7 +642,7 @@ GitHub Actions が自動でビルド & デプロイ
 GitHub Pages に公開される（数分後）
 ```
 
-> **Decap CMS 経由の場合**: 管理画面で「公開」を押すと自動でコミット・プッシュまで行われるため、git操作は不要。
+> **Decap CMS 経由の場合**: 現在は未使用・削除済み。
 
 ---
 
@@ -658,6 +659,5 @@ draft: true の記事を一覧表示して、「LPIC-1」の記事を続きか�
 
 ## 注意事項
 
-- `public/admin/config.yml` の `repo:` は必ず実際のGitHubリポジトリ名に変更すること
 - GitHub Pages を有効にするには、リポジトリの Settings → Pages → Source を「GitHub Actions」に設定すること
-- Decap CMS を使うには GitHub OAuth App の設定が別途必要（または Netlify Identity を使う方法もある）
+- Decap CMS は現在は未使用・削除済み（`public/admin/` は存在しない）。再導入する場合はバージョン固定・SRI付きで読み込むこと
