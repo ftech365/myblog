@@ -24,7 +24,10 @@ export default defineConfig({
     sitemap(),
   ],
   markdown: {
-    // 生HTMLの埋め込みを無効化（不正な<script>タグ等を防ぐ）
+    // 注意: 空の remarkPlugins / rehypePlugins では生HTMLの埋め込みは無効化されない
+    // （Markdown 内の生HTMLはそのまま出力される）。不正な埋め込みは
+    // scripts/check-content.mjs（npm run build の prebuild で実行）でビルド時に検出し、
+    // 実行時は BaseHead.astro の CSP でブロックする。
     remarkPlugins: [],
     rehypePlugins: [],
   },
