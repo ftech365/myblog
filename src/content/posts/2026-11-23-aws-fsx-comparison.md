@@ -124,6 +124,7 @@ Windows Server 上に構築された、SMB ファイル共有のためのサー�
 NetApp の ONTAP を AWS 上で動かすサービスで、4種の中で最も機能が多い。主な特徴は以下のとおりだ。
 
 - NFS・SMB・iSCSI・NVMe を1つのファイルシステムで同時提供（マルチプロトコル）
+- SVM（ストレージ仮想マシン）単位で Active Directory に参加でき、NTFS ACL・ファイルアクセス監査にも対応
 - SSD 層と低コストのキャパシティプール層の間でコールドデータを自動階層化
 - SnapMirror によるオンプレ NetApp とのレプリケーション、FlexCache によるキャッシュ
 - 重複排除・圧縮・コンパクションでストレージ効率が高い
@@ -178,8 +179,9 @@ Q2. 次のいずれかが必要？
     ・64 TiB を超える SMB 共有、または数十 PB 規模
     └─ Yes → FSx for NetApp ONTAP
 
-Q3. クライアントが Windows 中心で、AD 連携・NTFS ACL・DFS が必要？
+Q3. クライアントが Windows 中心の SMB 共有で、Windows Server の運用で完結させたい？
     └─ Yes → FSx for Windows File Server
+              （AD 連携・NTFS ACL は ONTAP でも可能。迷ったら後述の比較表へ）
 
 Q4. クライアントが Linux 中心で NFS を使う？
     └─ Yes → FSx for OpenZFS
@@ -212,7 +214,7 @@ Q4. クライアントが Linux 中心で NFS を使う？
 
 ### Windows と ONTAP のどちらにするか
 
-どちらも SMB と AD 連携に対応するため、Windows ファイル共有では毎回ここで迷う。「移行元が Windows だから Windows」と決め打ちせず、容量・コスト・機能で比べるのがよい。現時点でのAWS 公式情報と照合した。
+どちらも SMB と AD 連携に対応するため、Windows ファイル共有では毎回ここで迷う。「移行元が Windows だから Windows」と決め打ちせず、容量・コスト・機能で比べるのがよい。DevelopersIO の記事（参考リンク参照）の判断ポイントを、AWS 公式情報と照合したうえで表に整理すると以下のとおりだ。
 
 | 観点 | Windows が有利 | ONTAP が有利 |
 |---|---|---|
@@ -275,7 +277,7 @@ Linux 向け NFS なら FSx ではない Amazon EFS も候補になる。違い�
 ```text
 大規模並列処理（ML / HPC）          → FSx for Lustre
 マルチプロトコル・ハイブリッド・大容量 → FSx for NetApp ONTAP
-Windows 共有（AD / NTFS ACL）        → FSx for Windows File Server
+Windows 中心の SMB 共有             → FSx for Windows File Server
 Linux 向け NFS（低レイテンシ）        → FSx for OpenZFS
 ```
 
